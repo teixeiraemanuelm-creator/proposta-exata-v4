@@ -333,7 +333,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
     .replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
 
   return (
-    <div className="max-w-3xl mx-auto pb-10">
+    <div className="max-w-4xl mx-auto pb-10">
       {/* Header row */}
       <div className="flex items-center gap-2 mb-3">
         <button onClick={() => onNavigate('orcamentos')} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5"><ArrowLeft size={16} /></button>
@@ -369,9 +369,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
         <div className="p-5 border-b border-white/6">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Cliente</p>
           <p className="font-bold text-white text-lg leading-tight">{cliente?.nome ?? orc.cliente_nome}</p>
-          {orc.condicao_pagamento && <p className="text-sm text-gray-300 mt-1">{orc.condicao_pagamento}</p>}
-          
-          {/* Grid 2 colunas igual Netlify */}
+          {/* Grid 2 colunas */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-3">
             <div>
               <p className="text-xs text-gray-500">Pagamento</p>
