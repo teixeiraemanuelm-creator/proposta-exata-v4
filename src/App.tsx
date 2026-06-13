@@ -52,7 +52,7 @@ function AppShell() {
     <div className="min-h-screen flex bg-dark-900">
       <Sidebar current={screen} onNavigate={navigate} />
       <main className="flex-1 overflow-y-auto">
-        <div className="px-4 lg:px-8 py-6 lg:py-8 pl-16 lg:pl-8 max-w-screen-xl mx-auto">
+        <div className="px-4 lg:px-8 py-6 lg:py-8 pl-16 lg:pl-8">
           {renderScreen()}
         </div>
       </main>
