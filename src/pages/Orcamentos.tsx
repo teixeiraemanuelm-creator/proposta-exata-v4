@@ -34,7 +34,7 @@ export function OrcamentosLista({ onNavigate }: { onNavigate: (s: Screen, id?: s
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Orçamentos" subtitle="Gerencie e emita propostas"
         action={<Btn icon={<Plus size={15} />} onClick={() => onNavigate('orcamento-novo')}>Novo Orçamento</Btn>} />
 
@@ -179,7 +179,7 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
   ]
 
   return (
-    <div className="max-w-3xl mx-auto pb-10">
+    <div className="w-full pb-10">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => onNavigate('orcamentos')} className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5"><ArrowLeft size={18} /></button>
         <h1 className="text-xl font-bold text-white">{editId ? 'Editar Orçamento' : 'Orçamento #0000'}</h1>
@@ -333,7 +333,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
     .replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')
 
   return (
-    <div className="max-w-4xl mx-auto pb-10">
+    <div className="w-full pb-10">
       {/* Header row */}
       <div className="flex items-center gap-2 mb-3">
         <button onClick={() => onNavigate('orcamentos')} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5"><ArrowLeft size={16} /></button>
@@ -464,7 +464,7 @@ export function OrcamentoPublico({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-dark-900 p-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         <div className="card overflow-hidden">
           <div className="bg-gradient-to-r from-dark-800 to-dark-700 px-6 py-5 flex items-start justify-between">
             <div>
