@@ -96,7 +96,7 @@ export function Clientes() {
           <EmptyState icon={<Search size={24} />} title="Nenhum cliente" desc="Adicione seu primeiro cliente"
             action={<Btn size="sm" icon={<Plus size={13} />} onClick={() => openModal()}>Adicionar</Btn>} />
         ) : filtrado.map(c => (
-          <div key={c.id} className="table-row grid-cols-[1fr_180px_180px_40px]" onClick={() => openModal(c)}>
+          <div key={c.id} className="table-row grid-cols-[1fr_180px_180px_80px]" onClick={() => openModal(c)}>
             <div>
               <p className="text-sm font-medium text-white">{c.nome}</p>
               {c.cpf_cnpj && <p className="text-xs text-gray-500">{c.cpf_cnpj}</p>}
@@ -108,7 +108,7 @@ export function Clientes() {
             <div className="text-xs text-gray-400">
               {c.cidade && <p>{c.cidade}/{c.estado}</p>}
             </div>
-            <button onClick={e => handleDelete(c.id, e)} className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10"><Trash2 size={13} /></button>
+            <div className="flex gap-1"><button onClick={e => { e.stopPropagation(); openModal(c) }} className="p-1.5 rounded text-gray-600 hover:text-blue-400 hover:bg-blue-500/10"><Edit2 size={13} /></button><button onClick={e => handleDelete(c.id, e)} className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10"><Trash2 size={13} /></button></div>
           </div>
         ))}
       </div>
