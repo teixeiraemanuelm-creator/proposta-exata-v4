@@ -6,7 +6,7 @@ import { R$, fmtData, hoje, calcItem, calcTotais, enviarWhatsApp, gerarPDF } fro
 import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal } from '@/components/ui'
 import type { Screen } from '@/types'
 
-// ─── Lista ────────────────────────────────────────────────────────────────────
+// ─── Lista (v2) ───────────────────────────────────────────────────────────────
 export function OrcamentosLista({ onNavigate }: { onNavigate: (s: Screen, id?: string) => void }) {
   const { empresa } = useAuth()
   const [lista, setLista] = useState<any[]>([])
