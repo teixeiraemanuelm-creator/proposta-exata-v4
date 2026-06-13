@@ -98,8 +98,8 @@ html.light-mode .table-row { border-color: rgba(0,0,0,0.06) !important; }
 html.light-mode .table-row:hover { background: rgba(0,0,0,0.02) !important; }
 html.light-mode .table-header { color: #6b69a0 !important; border-color: rgba(0,0,0,0.08) !important; }
 html.light-mode aside { background: #1a1829 !important; }
-html.light-mode .nav-item { color: #c0bed8 !important; }
-html.light-mode .nav-item:hover { background: rgba(255,255,255,0.1) !important; color: white !important; }
+html.light-mode .nav-item { color: #4a4869 !important; }
+html.light-mode .nav-item:hover { background: rgba(0,0,0,0.08) !important; color: #1a1829 !important; }
 html.light-mode .nav-item.active { background: rgba(37,99,235,0.25) !important; color: #60a5fa !important; }
 html.light-mode .btn-primary { background: #2563eb !important; color: white !important; }
 html.light-mode .btn-primary:hover { background: #1d4ed8 !important; }
