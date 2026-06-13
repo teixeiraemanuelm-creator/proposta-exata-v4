@@ -51,15 +51,16 @@ export function OrcamentosLista({ onNavigate }: { onNavigate: (s: Screen, id?: s
           <EmptyState icon={<FileDown size={26} />} title="Nenhum orçamento" desc="Crie seu primeiro orçamento"
             action={<Btn size="sm" icon={<Plus size={13} />} onClick={() => onNavigate('orcamento-novo')}>Criar</Btn>} />
         ) : filtrado.map(o => (
-          <div key={o.id} className="table-row grid-cols-[60px_1fr_100px_100px_100px_40px]" onClick={() => onNavigate('orcamento-detalhe', o.id)}>
+          <div key={o.id} className="table-row grid-cols-[60px_1fr_100px_100px_100px_80px]" onClick={() => onNavigate('orcamento-detalhe', o.id)}>
             <span className="text-xs text-gray-500 font-mono">#{o.numero}</span>
             <span className="text-sm font-medium text-white truncate">{o.clientes?.nome ?? o.cliente_nome ?? '–'}</span>
             <span className="text-xs text-gray-400">{fmtData(o.created_at)}</span>
             <span><Badge status={o.status} /></span>
             <span className="text-sm font-semibold text-white tabular-nums">{R$(o.total)}</span>
-            <button onClick={e => handleDelete(o.id, e)} className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100">
-              <Trash2 size={13} />
-            </button>
+            <div className="flex gap-1">
+              <button onClick={e => { e.stopPropagation(); onNavigate('orcamento-novo', o.id) }} className="p-1.5 rounded text-gray-600 hover:text-blue-400 hover:bg-blue-500/10 transition-colors opacity-0 group-hover:opacity-100"><Edit2 size={13} /></button>
+              <button onClick={e => handleDelete(o.id, e)} className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={13} /></button>
+            </div>
           </div>
         ))}
       </div>
