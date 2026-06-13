@@ -11,7 +11,7 @@ import {
   getEstoque, getMovimentacoes, salvarEmpresa,
   supabase,
 } from '@/lib/supabase'
-import { R$, fmtData, hoje, buscaCEP, maskCPFCNPJ, maskTelefone, maskCEP } from '@/lib/utils'
+import { R$, fmtData, hoje, buscaCEP, maskCPFCNPJ, maskTelefone, maskCEP, maskCNPJ } from '@/lib/utils'
 import { Btn, Input, Textarea, Select, Modal, Spinner, PageHeader, EmptyState } from '@/components/ui'
 
 // ─── CLIENTES ─────────────────────────────────────────────────────────────────
