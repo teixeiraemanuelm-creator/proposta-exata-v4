@@ -561,7 +561,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
             <Logo size="sm" className="h-4 ml-1 opacity-40" />
           </div>
         </div>
-      </div>
+      {/* Modal Pix */}
 {/* Modal Pix */}
       {pixModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
