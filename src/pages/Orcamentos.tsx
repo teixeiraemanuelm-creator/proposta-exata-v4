@@ -562,12 +562,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-
-      {/* Modal Pix */}
+{/* Modal Pix */}
       {pixModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="card w-full max-w-sm p-6 flex flex-col gap-4">
@@ -632,6 +627,9 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
           </div>
         </div>
       )}
+    </div>
+  )
+}
 
 // ─── Público (aprovação) ──────────────────────────────────────────────────────
 export function OrcamentoPublico({ id }: { id: string }) {
