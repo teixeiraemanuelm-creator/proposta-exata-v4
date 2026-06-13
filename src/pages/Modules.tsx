@@ -187,8 +187,13 @@ export function Produtos() {
     getProdutos(empresa.id).then(({ data }) => { setLista(data ?? []); setLoading(false) })
   }, [empresa])
 
-  function openModal(item?: any) {
-    setForm(item ?? { unidade: 'm2', preco_unitario: 0 })
+  async function openModal(item?: any) {
+    if (item) {
+      setForm(item)
+    } else {
+      const codigo = await getProximoCodigo(empresa?.id ?? '')
+      setForm({ codigo, unidade: 'm2', preco_unitario: 0 })
+    }
     setModal({ open: true, item })
   }
 
@@ -207,6 +212,9 @@ export function Produtos() {
   async function handleSave() {
     if (!form.nome?.trim()) return alert('Preencha o nome do produto')
     if (!empresa?.id) return alert('Empresa não carregada')
+    // Check duplicate code
+    const codigoDuplicado = lista.some(p => p.codigo === form.codigo && p.id !== form.id)
+    if (codigoDuplicado) return alert(`O código "${form.codigo}" já existe. Use outro código.`)
     setSaving(true)
     const { data, error } = await salvarProduto({ ...form, empresa_id: empresa.id })
     if (error) { alert('Erro ao salvar: ' + error.message); setSaving(false); return }
