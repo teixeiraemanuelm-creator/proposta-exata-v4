@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Logo } from '@/components/Logo'
 import { Plus, Search, ArrowLeft, Trash2, Edit2, FileDown, MessageCircle, Mail, Link2, Copy, Check, Receipt } from 'lucide-react'
 import { useAuth } from '@/contexts'
 import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores } from '@/lib/supabase'
