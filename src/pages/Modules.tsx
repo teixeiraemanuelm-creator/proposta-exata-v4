@@ -827,7 +827,7 @@ export function Configuracoes() {
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  function maskCNPJLocal(v: string) {
+  function maskCNPJ(v: string) {
     return v.replace(/\D/g, '').slice(0, 14)
       .replace(/(\d{2})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
@@ -847,7 +847,7 @@ export function Configuracoes() {
     if (!empresa) return
     setForm({
       ...empresa,
-      cnpj: maskCNPJLocal(empresa.cnpj ?? ''),
+      cnpj: maskCNPJ(empresa.cnpj ?? ''),
       ie: maskIELocal(empresa.ie ?? ''),
       telefone: maskTelefone(empresa.telefone ?? ''),
       cep: maskCEP(empresa.cep ?? ''),
@@ -930,7 +930,7 @@ export function Configuracoes() {
         <div className="flex flex-col gap-3">
           <Input label="Nome da Empresa / Razão Social" value={form.nome ?? ''} onChange={(e: any) => f({ nome: e.target.value })} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="CNPJ" value={maskCNPJLocal(form.cnpj ?? '')} onChange={(e: any) => f({ cnpj: maskCNPJLocal(e.target.value) })} placeholder="00.000.000/0001-00" />
+            <Input label="CNPJ" value={maskCNPJ(form.cnpj ?? '')} onChange={(e: any) => f({ cnpj: maskCNPJ(e.target.value) })} placeholder="00.000.000/0001-00" />
             <Input label="Inscrição Estadual (IE)" value={maskIELocal(form.ie ?? '')} onChange={(e: any) => f({ ie: maskIELocal(e.target.value) })} placeholder="797.849.119.119" />
           </div>
           <div className="grid grid-cols-2 gap-3">
