@@ -8,6 +8,7 @@ export type Screen =
   | 'relatorios'
   | 'pagamentos'
   | 'configuracoes'
+  | 'planos'
 
 export type Theme = 'dark' | 'light'
 
