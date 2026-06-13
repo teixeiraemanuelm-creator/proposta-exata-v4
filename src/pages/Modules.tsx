@@ -411,7 +411,7 @@ export function ReciboForm({ onBack, empresaId }: { onBack: () => void; empresaI
   ]
 
   return (
-    <div className="max-w-4xl mx-auto pb-10">
+    <div className="pb-10">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={onBack} className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5">←</button>
         <h1 className="text-xl font-bold text-white">Recibo #0000</h1>
@@ -887,12 +887,19 @@ export function Configuracoes() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-10">
-      <PageHeader title="Configurações" subtitle="Gerencie as informações e identidade da sua empresa" />
+    <div className="pb-10">
+      <div className="flex items-center gap-2 mb-6">
+        <span className="text-gray-500 text-sm">Configurações</span>
+      </div>
+      <h1 className="text-2xl font-bold text-white mb-6">Configurações</h1>
 
       <div className="card p-5 mb-4">
-        <h2 className="font-bold text-white mb-1 text-sm">Tema do Aplicativo</h2>
-        <p className="text-xs text-gray-500 mb-3">Modo Escuro (Preto &amp; Laranja)</p>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="font-bold text-white text-sm">Tema do Aplicativo</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Modo Escuro (Preto &amp; Laranja)</p>
+          </div>
+        </div>
         {(() => {
           const [theme, setThemeState] = React.useState(() => localStorage.getItem('pe_theme') ?? 'dark')
           function applyTheme(id: string) {
@@ -978,10 +985,12 @@ export function Configuracoes() {
         </div>
       </div>
 
-      <Btn full size="lg" loading={loading} onClick={handleSave}
-        className={saved ? '!bg-emerald-600 hover:!bg-emerald-600' : ''}>
-        {saved ? '✓ Salvo com sucesso!' : 'Salvar Informações'}
-      </Btn>
+      <div className="flex justify-start">
+        <Btn size="lg" loading={loading} onClick={handleSave}
+          className={saved ? '!bg-emerald-600 hover:!bg-emerald-600' : ''}>
+          {saved ? '✓ Salvo com sucesso!' : 'Salvar Informações'}
+        </Btn>
+      </div>
     </div>
   )
 }
