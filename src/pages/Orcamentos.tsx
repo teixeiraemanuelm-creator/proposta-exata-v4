@@ -496,15 +496,15 @@ export function OrcamentoPublico({ id }: { id: string }) {
   )
 
   return (
-    <div className="min-h-screen bg-dark-900 p-4">
-      <div className="w-full">
+    <div className="min-h-screen bg-dark-900 p-4 flex items-start justify-center">
+      <div className="w-full max-w-2xl">
         <div className="card overflow-hidden">
-          <div className="bg-gradient-to-r from-dark-800 to-dark-700 px-6 py-5 flex items-start justify-between">
-            <div>
-              <p className="font-bold text-white text-lg">{orc.empresas?.nome ?? orc.empresa_id}</p>
-              <p className="text-xs text-gray-500 mt-2">Orçamento #{orc.numero}</p>
+          <div className="bg-gradient-to-r from-brand-600/20 to-purple-900/30 px-6 py-6 border-b border-white/10">
+            <div className="flex items-center justify-between mb-1">
+              <Logo size="sm" />
+              <span className="text-xs text-gray-500">Orçamento #{String(orc.numero).padStart(4,'0')}</span>
             </div>
-            <Badge status={orc.status} />
+            <p className="text-base font-bold text-white mt-3">{orc.empresas?.nome ?? ''}</p>
           </div>
           <div className="p-6 flex flex-col gap-5">
             {(orc.clientes || orc.cliente_nome) && (
