@@ -6,6 +6,7 @@ import { Dashboard } from '@/pages/Dashboard'
 import { OrcamentosLista, OrcamentoForm, OrcamentoDetalhe, OrcamentoPublico } from '@/pages/Orcamentos'
 import { Clientes, Produtos, Recibos, ReciboForm, Estoque, Equipe, Relatorios, Pagamentos, Configuracoes } from '@/pages/Modules'
 import { LandingPage } from '@/pages/Landing'
+import { Planos } from '@/pages/Planos'
 import { Spinner } from '@/components/ui'
 import { Logo } from '@/components/Logo'
 import { Sun, Moon } from 'lucide-react'
@@ -109,6 +110,7 @@ function AppShell() {
       case 'relatorios': return <Relatorios />
       case 'pagamentos': return <Pagamentos />
       case 'configuracoes': return <Configuracoes />
+      case 'planos': return <Planos />
       default: return <Dashboard onNavigate={navigate} />
     }
   }
