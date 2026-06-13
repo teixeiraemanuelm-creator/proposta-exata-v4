@@ -16,7 +16,7 @@
   .no-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .no-spinner { -moz-appearance: textfield; }
   
-  .card { background: #1a1829; border: 1px solid rgba(255,255,255,0.07); border-radius: 1rem; }
+  .card { background: #1a1829; border: 1px solid rgba(255,255,255,0.09); border-radius: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
   .field {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.18);
@@ -30,6 +30,7 @@
     font-weight: 500;
   }
   .field::placeholder { color: #5a587a; }
+  label, .label { color: #a8a6c8 !important; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
   .field:focus { outline: none; border-color: #f97316; background: rgba(255,255,255,0.12); }
   .field:disabled { opacity: 0.5; cursor: not-allowed; }
   
