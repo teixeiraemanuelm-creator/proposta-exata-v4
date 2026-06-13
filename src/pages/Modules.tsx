@@ -217,7 +217,7 @@ export function Produtos() {
     if (codigoDuplicado) return alert(`O código "${form.codigo}" já existe. Use outro código.`)
     setSaving(true)
     const { data, error } = await salvarProduto({ ...form, empresa_id: empresa.id })
-    if (error) { alert('Erro ao salvar: ' + error.message); setSaving(false); return }
+    if (error) { alert(error.message.includes('duplicate') ? `O código "${form.codigo}" já existe. Altere o código e tente novamente.` : 'Erro ao salvar: ' + error.message); setSaving(false); return }
     if (data) {
       setLista(p => p.some(x => x.id === data.id) ? p.map(x => x.id === data.id ? data : x) : [data, ...p])
       setModal({ open: false })
