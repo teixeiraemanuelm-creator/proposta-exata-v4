@@ -6,6 +6,7 @@ import {
   getProdutos, salvarProduto, deletarProduto,
   getRecibos, salvarRecibo, deletarRecibo,
   getVendedores, salvarVendedor, deletarVendedor,
+  getMembros, getConvites, criarConvite, cancelarConvite, atualizarRoleMembro, removerMembro,
   getFormasPagamento, salvarFormaPagamento, deletarFormaPagamento,
   getOrcamentos,
   getEstoque, getMovimentacoes, salvarEmpresa,
@@ -554,96 +555,185 @@ export function Estoque() {
   )
 }
 
-// ─── EQUIPE ───────────────────────────────────────────────────────────────────
-const CORES = ['#f97316', '#3b82f6', '#22c55e', '#f59e0b', '#ec4899', '#6366f1', '#06b6d4', '#ef4444']
+// ─── EQUIPE (Multiusuário) ────────────────────────────────────────────────────
+
+const ROLE_LABEL: Record<string, string> = {
+  owner: 'Proprietário',
+  admin: 'Admin',
+  vendedor: 'Vendedor',
+  visualizador: 'Visualizador',
+}
+const ROLE_COLOR: Record<string, string> = {
+  owner: 'text-amber-400',
+  admin: 'text-blue-400',
+  vendedor: 'text-brand-500',
+  visualizador: 'text-gray-400',
+}
 
 export function Equipe() {
-  const [lista, setLista] = useState<any[]>([])
+  const { empresa, user, podeGerenciar } = useAuth()
+  const [membros, setMembros] = useState<any[]>([])
+  const [convites, setConvites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState<{ open: boolean; item?: any }>({ open: false })
-  const [form, setForm] = useState<any>({ avatar_color: CORES[0], role: 'seller', active: true })
-  const [saving, setSaving] = useState(false)
+  const [modalConvite, setModalConvite] = useState(false)
+  const [emailConvite, setEmailConvite] = useState('')
+  const [roleConvite, setRoleConvite] = useState('vendedor')
+  const [enviando, setEnviando] = useState(false)
+  const [conviteOk, setConviteOk] = useState('')
+  const [conviteErro, setConviteErro] = useState('')
 
-  useEffect(() => {
-    getVendedores().then(({ data }) => { setLista(data ?? []); setLoading(false) })
-  }, [])
-
-  function openModal(item?: any) {
-    setForm(item ?? { avatar_color: CORES[0], role: 'seller', active: true })
-    setModal({ open: true, item })
+  async function carregar() {
+    if (!empresa) return
+    const [{ data: m }, { data: c }] = await Promise.all([
+      getMembros(empresa.id),
+      getConvites(empresa.id),
+    ])
+    setMembros(m ?? [])
+    setConvites(c ?? [])
+    setLoading(false)
   }
 
-  async function handleSave() {
-    setSaving(true)
-    const { data } = await salvarVendedor(form)
-    if (data) {
-      setLista(p => p.some(x => x.id === data.id) ? p.map(x => x.id === data.id ? data : x) : [...p, data])
-      setModal({ open: false })
-    }
-    setSaving(false)
+  useEffect(() => { carregar() }, [empresa])
+
+  async function handleConvidar() {
+    if (!emailConvite.trim() || !empresa || !user) return
+    setEnviando(true); setConviteErro('')
+    const { data, error } = await criarConvite(empresa.id, emailConvite, roleConvite, user.id)
+    if (error) { setConviteErro('Erro ao criar convite. Tente novamente.'); setEnviando(false); return }
+    const link = `${window.location.origin}/aceitar-convite?token=${data.token}`
+    setConviteOk(link)
+    setEmailConvite('')
+    await carregar()
+    setEnviando(false)
+  }
+
+  async function handleRemover(membroId: string) {
+    if (!confirm('Remover este membro da equipe?')) return
+    await removerMembro(membroId)
+    setMembros(p => p.filter(m => m.id !== membroId))
+  }
+
+  async function handleCancelarConvite(id: string) {
+    await cancelarConvite(id)
+    setConvites(p => p.filter(c => c.id !== id))
+  }
+
+  async function handleAlterarRole(membroId: string, novoRole: string) {
+    await atualizarRoleMembro(membroId, novoRole)
+    setMembros(p => p.map(m => m.id === membroId ? { ...m, role: novoRole } : m))
+  }
+
+  function iniciais(membro: any) {
+    const nome: string = membro.auth_users?.raw_user_meta_data?.full_name ?? ''
+    const email: string = membro.auth_users?.email ?? ''
+    return (nome || email).slice(0, 2).toUpperCase()
   }
 
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
     <div className="w-full">
-      <PageHeader title="Equipe de Vendas" subtitle={`${lista.length} membro(s)`}
-        action={<Btn icon={<Plus size={15} />} onClick={() => openModal()}>Novo Vendedor</Btn>} />
+      <PageHeader
+        title="Equipe"
+        subtitle={`${membros.length} membro(s) ativo(s)`}
+        action={
+          podeGerenciar
+            ? <Btn icon={<Plus size={15} />} onClick={() => { setModalConvite(true); setConviteOk(''); setConviteErro('') }}>Convidar membro</Btn>
+            : undefined
+        }
+      />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {lista.map(v => (
-          <div key={v.id} className="card p-4 cursor-pointer hover:border-white/15 transition-all" onClick={() => openModal(v)}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                style={{ background: v.avatar_color ?? '#f97316' }}>
-                {(v.name ?? '??').slice(0, 2).toUpperCase()}
+      <div className="card overflow-hidden mb-4">
+        <div className="px-5 py-3 border-b border-white/6">
+          <h2 className="text-sm font-bold text-white">Membros</h2>
+        </div>
+        {membros.map(m => {
+          const isSelf = m.user_id === user?.id
+          const email = m.auth_users?.email ?? '–'
+          const nome = m.auth_users?.raw_user_meta_data?.full_name ?? email
+          return (
+            <div key={m.id} className="flex items-center gap-3 px-5 py-3 border-b border-white/5 last:border-0">
+              <div className="w-9 h-9 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-500 text-xs font-bold flex-shrink-0">
+                {iniciais(m)}
               </div>
-              <div>
-                <p className="font-semibold text-white">{v.name}</p>
-                <p className="text-xs text-brand-500 font-medium capitalize">
-                  {v.role === 'admin' ? 'Admin' : v.role === 'viewer' ? 'Visualizador' : 'Vendedor'}
-                </p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{nome}</p>
+                <p className="text-xs text-gray-500 truncate">{email}</p>
               </div>
-              {!v.active && <span className="ml-auto text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">Inativo</span>}
+              {podeGerenciar && m.role !== 'owner' ? (
+                <select
+                  value={m.role}
+                  onChange={e => handleAlterarRole(m.id, e.target.value)}
+                  className="text-xs font-semibold px-2 py-1 rounded-lg bg-white/5 border border-white/10 cursor-pointer"
+                  style={{ color: ROLE_COLOR[m.role] ?? 'inherit' }}
+                >
+                  <option value="admin">Admin</option>
+                  <option value="vendedor">Vendedor</option>
+                  <option value="visualizador">Visualizador</option>
+                </select>
+              ) : (
+                <span className={`text-xs font-semibold ${ROLE_COLOR[m.role] ?? 'text-gray-400'}`}>
+                  {ROLE_LABEL[m.role] ?? m.role}
+                </span>
+              )}
+              {isSelf && <span className="text-xs text-gray-600">(você)</span>}
+              {podeGerenciar && !isSelf && m.role !== 'owner' && (
+                <button onClick={() => handleRemover(m.id)} className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
+              )}
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              {[['0', 'Orç.'], ['0%', 'Conv.'], ['0,00', 'Receita']].map(([val, lbl]) => (
-                <div key={lbl} className="bg-white/5 rounded-lg py-2">
-                  <p className="text-sm font-bold text-brand-500">{val}</p>
-                  <p className="text-xs text-gray-500">{lbl}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      <Modal open={modal.open} onClose={() => setModal({ open: false })} title={modal.item ? 'Editar Vendedor' : 'Novo Vendedor'} size="sm">
-        <div className="flex flex-col gap-4">
-          <div>
-            <p className="text-xs font-semibold text-purple-300/60 uppercase tracking-wider mb-2">Cor do Avatar</p>
-            <div className="flex gap-2 flex-wrap">
-              {CORES.map(c => (
-                <button key={c} onClick={() => setForm((p: any) => ({ ...p, avatar_color: c }))}
-                  className={`w-8 h-8 rounded-xl transition-all ${form.avatar_color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-dark-900 scale-110' : ''}`}
-                  style={{ background: c }} />
-              ))}
-            </div>
+      {convites.length > 0 && (
+        <div className="card overflow-hidden mb-4">
+          <div className="px-5 py-3 border-b border-white/6">
+            <h2 className="text-sm font-bold text-white">Convites pendentes</h2>
           </div>
-          <Input label="Nome *" value={form.name ?? ''} onChange={(e: any) => setForm((p: any) => ({ ...p, name: e.target.value }))} />
-          <Input label="Email *" type="email" value={form.email ?? ''} onChange={(e: any) => setForm((p: any) => ({ ...p, email: e.target.value }))} />
-          <Input label="Telefone" value={form.phone ?? ''} onChange={(e: any) => setForm((p: any) => ({ ...p, phone: maskTelefone(e.target.value) }))} />
-          <Select label="Função" value={form.role ?? 'seller'} onChange={(e: any) => setForm((p: any) => ({ ...p, role: e.target.value }))}
-            options={[{ value: 'admin', label: 'Admin' }, { value: 'seller', label: 'Vendedor' }, { value: 'viewer', label: 'Visualizador' }]} />
-          <label className="flex items-center gap-3 cursor-pointer p-3 bg-white/5 rounded-xl">
-            <input type="checkbox" checked={form.active ?? true}
-              onChange={e => setForm((p: any) => ({ ...p, active: e.target.checked }))}
-              className="w-4 h-4 accent-brand-500" />
-            <span className="text-sm text-gray-300 font-medium">Ativo</span>
-          </label>
+          {convites.map(c => (
+            <div key={c.id} className="flex items-center gap-3 px-5 py-3 border-b border-white/5 last:border-0">
+              <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 text-xs flex-shrink-0">✉</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white truncate">{c.email}</p>
+                <p className="text-xs text-gray-500">{ROLE_LABEL[c.role] ?? c.role} · expira {new Date(c.expires_at).toLocaleDateString('pt-BR')}</p>
+              </div>
+              <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/aceitar-convite?token=${c.token}`)}
+                className="text-xs text-gray-500 hover:text-white px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors">
+                Copiar link
+              </button>
+              {podeGerenciar && (
+                <button onClick={() => handleCancelarConvite(c.id)} className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Modal open={modalConvite} onClose={() => setModalConvite(false)} title="Convidar membro" size="sm">
+        <div className="flex flex-col gap-4">
+          <Input label="Email do convidado *" type="email" placeholder="vendedor@empresa.com"
+            value={emailConvite} onChange={(e: any) => setEmailConvite(e.target.value)} />
+          <Select label="Função" value={roleConvite} onChange={(e: any) => setRoleConvite(e.target.value)}
+            options={[
+              { value: 'admin', label: 'Admin — acesso total exceto billing' },
+              { value: 'vendedor', label: 'Vendedor — cria e edita orçamentos' },
+              { value: 'visualizador', label: 'Visualizador — somente leitura' },
+            ]} />
+          {conviteOk && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex flex-col gap-2">
+              <p className="text-xs text-emerald-400 font-semibold">✓ Convite criado! Envie o link abaixo:</p>
+              <p className="text-xs text-gray-400 break-all font-mono">{conviteOk}</p>
+              <button onClick={() => navigator.clipboard.writeText(conviteOk)}
+                className="self-start text-xs text-emerald-400 hover:text-emerald-300 underline">Copiar link</button>
+            </div>
+          )}
+          {conviteErro && <p className="text-sm text-red-400 bg-red-500/10 rounded-xl px-4 py-2">{conviteErro}</p>}
+          <p className="text-xs text-gray-500">
+            Envie o link gerado para o convidado. Ao clicar, ele cria uma conta (ou loga) e é vinculado automaticamente à empresa. O link expira em 7 dias.
+          </p>
           <div className="flex gap-3">
-            <Btn variant="secondary" full onClick={() => setModal({ open: false })}>Cancelar</Btn>
-            <Btn full loading={saving} onClick={handleSave}>Salvar</Btn>
+            <Btn variant="secondary" full onClick={() => setModalConvite(false)}>Fechar</Btn>
+            {!conviteOk && <Btn full loading={enviando} onClick={handleConvidar}>Gerar convite</Btn>}
           </div>
         </div>
       </Modal>
