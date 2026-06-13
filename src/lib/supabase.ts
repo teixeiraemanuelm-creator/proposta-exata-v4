@@ -197,3 +197,26 @@ export const getEstoque = () =>
 
 export const getMovimentacoes = () =>
   supabase.from('stock_movements').select('*, products(name)').order('created_at', { ascending: false })
+
+// ─── Assinaturas ──────────────────────────────────────────────────────────────
+
+export const getAssinatura = (empresaId: string) =>
+  supabase.from('assinaturas').select('*').eq('empresa_id', empresaId).single()
+
+export const podecriarOrcamento = (empresaId: string) =>
+  supabase.rpc('pode_criar_orcamento', { p_empresa_id: empresaId })
+
+export const getPagamentosAssinatura = (empresaId: string) =>
+  supabase.from('pagamentos_assinatura').select('*').eq('empresa_id', empresaId).order('created_at', { ascending: false }).limit(10)
+
+export const ativarPlano = (empresaId: string, mpPaymentId: string) =>
+  supabase.from('assinaturas').upsert({
+    empresa_id: empresaId,
+    plano: 'pro',
+    status: 'ativo',
+    mp_payment_id: mpPaymentId,
+    valor_mensal: 47,
+    inicio: new Date().toISOString(),
+    proximo_vencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'empresa_id' })
