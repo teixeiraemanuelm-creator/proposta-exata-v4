@@ -65,7 +65,7 @@ export function Dashboard({ onNavigate }: Props) {
   if (loading) return <div className="flex items-center justify-center py-20"><Spinner size={32} /></div>
 
   return (
-    <div className="flex flex-col gap-5 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-5 w-full">
       {/* Header */}
       <div className="card p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
