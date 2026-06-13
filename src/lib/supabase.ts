@@ -68,6 +68,15 @@ export const deletarCliente = (id: string) =>
   supabase.from('clientes').update({ ativo: false }).eq('id', id)
 
 // Produtos
+export async function getProximoCodigo(empresaId: string): Promise<string> {
+  const { data } = await supabase.from('produtos').select('codigo').eq('empresa_id', empresaId).order('created_at', { ascending: false })
+  const codigos = (data ?? []).map((p: any) => p.codigo ?? '').filter((c: string) => /^P-\d+$/.test(c))
+  if (codigos.length === 0) return 'P-001'
+  const nums = codigos.map((c: string) => parseInt(c.replace('P-', '')))
+  const max = Math.max(...nums)
+  return `P-${String(max + 1).padStart(3, '0')}`
+}
+
 export const getProdutos = (empresaId: string) =>
   supabase.from('produtos').select('*').eq('empresa_id', empresaId).eq('ativo', true).order('nome')
 
