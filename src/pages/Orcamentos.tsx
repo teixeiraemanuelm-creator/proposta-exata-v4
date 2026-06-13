@@ -342,7 +342,34 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
           <span className="text-sm text-gray-400">Orçamentos</span>
           <span className="text-gray-600">/</span>
           <h1 className="text-sm font-semibold text-white">Orçamento #{orc.numero}</h1>
-          <Badge status={orc.status} />
+          <select
+            value={orc.status}
+            onChange={async (e) => {
+              const newStatus = e.target.value
+              await salvarOrcamento({ id, status: newStatus })
+              setOrc((prev: any) => ({ ...prev, status: newStatus }))
+            }}
+            className="text-xs font-bold px-2 py-1 rounded-full border-0 cursor-pointer"
+            style={{
+              background: orc.status === 'aprovado' ? 'rgba(34,197,94,0.2)' :
+                          orc.status === 'enviado' ? 'rgba(59,130,246,0.2)' :
+                          orc.status === 'recusado' ? 'rgba(239,68,68,0.2)' :
+                          orc.status === 'em_analise' ? 'rgba(234,179,8,0.2)' :
+                          'rgba(100,100,120,0.3)',
+              color: orc.status === 'aprovado' ? '#4ade80' :
+                     orc.status === 'enviado' ? '#60a5fa' :
+                     orc.status === 'recusado' ? '#f87171' :
+                     orc.status === 'em_analise' ? '#facc15' :
+                     '#9998b8'
+            }}
+          >
+            <option value="rascunho">Rascunho</option>
+            <option value="enviado">Enviado</option>
+            <option value="em_analise">Em Análise</option>
+            <option value="aprovado">Aprovado</option>
+            <option value="recusado">Recusado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
         </div>
         {empresa && <span className="text-xs text-gray-500 hidden sm:block">{empresa.nome}</span>}
       </div>
