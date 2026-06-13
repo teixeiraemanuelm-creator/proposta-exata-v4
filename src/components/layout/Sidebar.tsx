@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   LayoutDashboard, FileText, Users, Package, Receipt,
   Warehouse, UserCheck, BarChart3, CreditCard, Settings,
-  Menu, X, LogOut, Sun, Moon
+  Menu, X, LogOut, Sun, Moon, Crown
 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { useAuth, useTheme } from '@/contexts'
@@ -20,12 +20,13 @@ const NAV: { screen: Screen; label: string; icon: React.ReactNode }[] = [
   { screen: 'relatorios', label: 'Relatórios', icon: <BarChart3 size={16} /> },
   { screen: 'pagamentos', label: 'Pagamentos', icon: <CreditCard size={16} /> },
   { screen: 'configuracoes', label: 'Configurações', icon: <Settings size={16} /> },
+  { screen: 'planos', label: isPro ? 'Plano Pro ✓' : 'Assinar Pro', icon: <Crown size={16} /> },
 ]
 
 interface Props { current: Screen; onNavigate: (s: Screen, id?: string) => void }
 
 export function Sidebar({ current, onNavigate }: Props) {
-  const { empresa } = useAuth()
+  const { empresa, isPro, plano } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const [open, setOpen] = useState(false)
 
