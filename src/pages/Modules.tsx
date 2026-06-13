@@ -955,17 +955,21 @@ export function Configuracoes() {
 
           {/* Logo */}
           <div>
-            <label className="text-xs font-semibold text-purple-300/60 uppercase tracking-wider mb-2 block">Logotipo (URL da imagem)</label>
-            <div className="flex gap-2 mb-2">
-              <Btn variant="secondary" size="sm" icon={<Upload size={13} />} loading={uploading}
-                onClick={() => fileRef.current?.click()}>
-                Upload
-              </Btn>
+            <label className="text-xs font-semibold text-purple-300/60 uppercase tracking-wider mb-2 block">Logotipo da Empresa</label>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <button type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 bg-white/8 text-sm font-semibold text-white hover:bg-white/12 transition-all">
+                  <Upload size={15} /> {uploading ? 'Enviando...' : 'Selecionar imagem'}
+                </button>
+                {form.logo_url && <img src={form.logo_url} alt="logo" className="w-10 h-10 object-contain rounded-lg bg-white/5 p-1" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />}
+              </div>
               <input ref={fileRef} type="file" accept="image/*" className="hidden"
                 onChange={e => { const file = e.target.files?.[0]; if (file) handleLogoUpload(file) }} />
+              <input className="field" placeholder="Ou cole a URL da imagem aqui..." value={form.logo_url ?? ''}
+                onChange={(e: any) => f({ logo_url: e.target.value })} />
             </div>
-            <Input placeholder="https://... ou faça upload acima" value={form.logo_url ?? ''}
-              onChange={(e: any) => f({ logo_url: e.target.value })} />
             {form.logo_url && (
               <img src={form.logo_url} alt="logo" className="mt-2 w-16 h-16 object-contain rounded-lg bg-white/5 p-2"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
