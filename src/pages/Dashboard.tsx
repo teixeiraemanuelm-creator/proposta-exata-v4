@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { TrendingUp, Clock, CheckCircle, FileText, Plus, ArrowRight } from 'lucide-react'
 import { useAuth } from '@/contexts'
 import { getOrcamentos } from '@/lib/supabase'
-import { R$, fmtData } from '@/lib/utils'
+import { R$, fmtData, gerarRelatorioPDF } from '@/lib/utils'
 import { Badge, Btn, Spinner } from '@/components/ui'
 import { Logo } from '@/components/Logo'
 import type { Screen } from '@/types'
@@ -33,6 +33,7 @@ export function Dashboard({ onNavigate }: Props) {
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('month')
   const [today] = useState(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (!empresa) return
@@ -62,6 +63,21 @@ export function Dashboard({ onNavigate }: Props) {
   })
   const maxCount = Math.max(...chartData.map(d => d.count), 4)
 
+  async function handleExport() {
+    if (exporting) return
+    setExporting(true)
+    const periodoLabel = PERIODS.find(p => p.id === period)?.label ?? period
+    await gerarRelatorioPDF(empresa, filtered, periodoLabel, {
+      receitaAprovada,
+      totalEmitido,
+      conversao,
+      aprovados: aprovados.length,
+      pendentes: pendentes.length,
+      total: filtered.length,
+    })
+    setExporting(false)
+  }
+
   if (loading) return <div className="flex items-center justify-center py-20"><Spinner size={32} /></div>
 
   return (
@@ -74,8 +90,8 @@ export function Dashboard({ onNavigate }: Props) {
             <p className="text-xs text-gray-500 capitalize">{today}</p>
           </div>
         </div>
-        <button onClick={() => {}} className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
-          <ArrowRight size={12} /> Exportar Resumo
+        <button onClick={handleExport} disabled={exporting} className="text-xs text-gray-400 hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50">
+          <ArrowRight size={12} /> {exporting ? 'Gerando...' : 'Exportar PDF'}
         </button>
       </div>
 
