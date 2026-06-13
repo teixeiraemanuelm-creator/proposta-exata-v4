@@ -456,6 +456,10 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
             <span className="text-sm font-bold text-gray-300">Total</span>
             <span className="text-xl font-bold text-brand-500 tabular-nums">{R$(orc.total)}</span>
           </div>
+          <div className="px-6 py-3 border-t border-white/6 flex justify-center">
+            <span className="text-xs text-gray-600">Powered by </span>
+            <Logo size="sm" className="h-4 ml-1 opacity-40" />
+          </div>
         </div>
       </div>
     </div>
@@ -501,11 +505,16 @@ export function OrcamentoPublico({ id }: { id: string }) {
       <div className="w-full max-w-2xl">
         <div className="card overflow-hidden">
           <div className="bg-gradient-to-r from-brand-600/20 to-purple-900/30 px-6 py-6 border-b border-white/10">
-            <div className="flex items-center justify-between mb-1">
-              <Logo size="sm" />
-              <span className="text-xs text-gray-500">Orçamento #{String(orc.numero).padStart(4,'0')}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {orc.empresas?.logo_url
+                  ? <img src={orc.empresas.logo_url} alt="logo" className="h-10 w-auto object-contain" />
+                  : <span className="text-lg font-bold text-white">{orc.empresas?.nome ?? ''}</span>
+                }
+                {orc.empresas?.logo_url && <p className="text-base font-bold text-white">{orc.empresas?.nome ?? ''}</p>}
+              </div>
+              <span className="text-xs text-gray-400">Orçamento #{String(orc.numero).padStart(4,'0')}</span>
             </div>
-            <p className="text-base font-bold text-white mt-3">{orc.empresas?.nome ?? ''}</p>
           </div>
           <div className="p-6 flex flex-col gap-5">
             {(orc.clientes || orc.cliente_nome) && (
@@ -543,6 +552,10 @@ export function OrcamentoPublico({ id }: { id: string }) {
                 <Btn variant="success" full onClick={() => handleAction('aprovado')}>✓ Aprovar Orçamento</Btn>
               </div>
             )}
+          </div>
+          <div className="px-6 py-3 border-t border-white/6 flex justify-center">
+            <span className="text-xs text-gray-600">Powered by </span>
+            <Logo size="sm" className="h-4 ml-1 opacity-40" />
           </div>
         </div>
       </div>
