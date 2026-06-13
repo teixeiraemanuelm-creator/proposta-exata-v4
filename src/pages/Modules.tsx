@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Plus, Search, Trash2, Edit2, BarChart3, RefreshCw, Upload } from 'lucide-react'
 import { useAuth } from '@/contexts'
 import {
@@ -411,7 +411,7 @@ export function ReciboForm({ onBack, empresaId }: { onBack: () => void; empresaI
   ]
 
   return (
-    <div className="max-w-2xl mx-auto pb-10">
+    <div className="max-w-4xl mx-auto pb-10">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={onBack} className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/5">←</button>
         <h1 className="text-xl font-bold text-white">Recibo #0000</h1>
@@ -820,12 +820,24 @@ export function Pagamentos() {
 // ─── CONFIGURAÇÕES ────────────────────────────────────────────────────────────
 export function Configuracoes() {
   const { empresa, setEmpresa } = useAuth()
-  const [form, setForm] = useState<any>(empresa ?? {})
+  const [form, setForm] = useState<any>({})
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [cepLoading, setCepLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Apply masks when empresa data loads
+  useEffect(() => {
+    if (!empresa) return
+    setForm({
+      ...empresa,
+      cnpj: maskCNPJLocal(empresa.cnpj ?? ''),
+      ie: maskIELocal(empresa.ie ?? ''),
+      telefone: maskTelefone(empresa.telefone ?? ''),
+      cep: maskCEP(empresa.cep ?? ''),
+    })
+  }, [empresa])
 
   function f(p: any) { setForm((prev: any) => ({ ...prev, ...p })) }
 
@@ -851,12 +863,19 @@ export function Configuracoes() {
     setUploading(false)
   }
 
-  function maskCNPJ(v: string) {
+  function maskCNPJLocal(v: string) {
     return v.replace(/\D/g, '').slice(0, 14)
       .replace(/(\d{2})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1/$2')
       .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+  }
+
+  function maskIELocal(v: string) {
+    return v.replace(/\D/g, '').slice(0, 12)
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,3})$/, '$1.$2')
   }
 
   async function handleSave() {
@@ -868,35 +887,41 @@ export function Configuracoes() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto pb-10">
+    <div className="max-w-4xl mx-auto pb-10">
       <PageHeader title="Configurações" subtitle="Gerencie as informações e identidade da sua empresa" />
 
       <div className="card p-5 mb-4">
         <h2 className="font-bold text-white mb-1 text-sm">Tema do Aplicativo</h2>
         <p className="text-xs text-gray-500 mb-3">Modo Escuro (Preto &amp; Laranja)</p>
-        <div className="grid grid-cols-2 gap-3">
-          {[{ id: 'dark', label: '🌙 Escuro (Laranja)' }, { id: 'light', label: '☀ Claro (Azul)' }].map(t => (
-            <button key={t.id}
-              onClick={() => {
-                const html = document.documentElement
-                if (t.id === 'dark') {
-                  html.classList.add('dark'); html.classList.remove('light-mode')
-                  document.body.style.background = '#0f0e17'; document.body.style.color = 'white'
-                } else {
-                  html.classList.remove('dark'); html.classList.add('light-mode')
-                  document.body.style.background = '#f0f2f8'; document.body.style.color = '#1a1829'
-                }
-                localStorage.setItem('pe_theme', t.id)
-              }}
-              className={`py-2.5 rounded-xl text-sm font-semibold transition-all border ${
-                (localStorage.getItem('pe_theme') ?? 'dark') === t.id
-                  ? 'border-brand-500 text-brand-500 bg-brand-500/10'
-                  : 'border-white/10 text-gray-400 hover:text-white'
-              }`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {(() => {
+          const [theme, setThemeState] = React.useState(() => localStorage.getItem('pe_theme') ?? 'dark')
+          function applyTheme(id: string) {
+            const html = document.documentElement
+            if (id === 'dark') {
+              html.classList.add('dark'); html.classList.remove('light-mode')
+              document.body.style.background = '#0f0e17'; document.body.style.color = 'white'
+            } else {
+              html.classList.remove('dark'); html.classList.add('light-mode')
+              document.body.style.background = '#f0f2f8'; document.body.style.color = '#1a1829'
+            }
+            localStorage.setItem('pe_theme', id)
+            setThemeState(id)
+          }
+          return (
+            <div className="grid grid-cols-2 gap-3">
+              {[{ id: 'dark', label: '🌙 Escuro (Laranja)' }, { id: 'light', label: '☀ Claro (Azul)' }].map(t => (
+                <button key={t.id} onClick={() => applyTheme(t.id)}
+                  className={`py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+                    theme === t.id
+                      ? 'border-brand-500 text-brand-500 bg-brand-500/10'
+                      : 'border-white/10 text-gray-400 hover:text-white'
+                  }`}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )
+        })()}
       </div>
 
       <div className="card p-5 mb-4">
@@ -905,14 +930,8 @@ export function Configuracoes() {
         <div className="flex flex-col gap-3">
           <Input label="Nome da Empresa / Razão Social" value={form.nome ?? ''} onChange={(e: any) => f({ nome: e.target.value })} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="CNPJ" value={form.cnpj ?? ''} onChange={(e: any) => f({ cnpj: maskCNPJ(e.target.value) })} placeholder="00.000.000/0001-00" />
-            <Input label="Inscrição Estadual (IE)" value={form.ie ?? ''} onChange={(e: any) => {
-              const v = e.target.value.replace(/\D/g, '').slice(0, 12)
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d{1,3})$/, '$1.$2')
-              f({ ie: v })
-            }} placeholder="797.849.119.119" />
+            <Input label="CNPJ" value={form.cnpj ?? ''} onChange={(e: any) => f({ cnpj: maskCNPJLocal(e.target.value) })} placeholder="00.000.000/0001-00" />
+            <Input label="Inscrição Estadual (IE)" value={form.ie ?? ''} onChange={(e: any) => f({ ie: maskIELocal(e.target.value) })} placeholder="797.849.119.119" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Telefone / WhatsApp" value={form.telefone ?? ''} onChange={(e: any) => f({ telefone: maskTelefone(e.target.value) })} placeholder="(16) 98116-4639" />
@@ -962,3 +981,4 @@ export function Configuracoes() {
     </div>
   )
 }
+
