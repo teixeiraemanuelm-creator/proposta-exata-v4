@@ -468,7 +468,7 @@ export function OrcamentoPublico({ id }: { id: string }) {
         <div className="card overflow-hidden">
           <div className="bg-gradient-to-r from-dark-800 to-dark-700 px-6 py-5 flex items-start justify-between">
             <div>
-              <p className="font-bold text-white text-lg">{orc.empresa_id}</p>
+              <p className="font-bold text-white text-lg">{orc.empresas?.nome ?? orc.empresa_id}</p>
               <p className="text-xs text-gray-500 mt-2">Orçamento #{orc.numero}</p>
             </div>
             <Badge status={orc.status} />
@@ -503,7 +503,7 @@ export function OrcamentoPublico({ id }: { id: string }) {
               </tr></tfoot>
             </table>
 
-            {orc.status === 'enviado' && (
+            {(orc.status === 'enviado' || orc.status === 'rascunho') && (
               <div className="flex gap-3 pt-2 border-t border-white/6">
                 <Btn variant="danger" full onClick={() => handleAction('recusado')}>Recusar</Btn>
                 <Btn variant="success" full onClick={() => handleAction('aprovado')}>✓ Aprovar Orçamento</Btn>
