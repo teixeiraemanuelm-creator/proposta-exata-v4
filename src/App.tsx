@@ -50,8 +50,13 @@ function AppShell() {
   const [selectedId, setSelectedId] = useState<string>()
   // showApp: true quando o usuário clicou em "Entrar" ou "Começar grátis" na landing
   const [showApp, setShowApp] = useState(() => {
-    // Se já veio de /dashboard ou tem sessão anterior, entra direto no app
-    return window.location.pathname !== '/' || Boolean(localStorage.getItem('pe_show_app'))
+    const path = window.location.pathname
+    // /app ou /dashboard entram direto, sem passar pela landing
+    if (path.startsWith('/app') || path.startsWith('/dashboard')) {
+      localStorage.setItem('pe_show_app', '1')
+      return true
+    }
+    return path !== '/' || Boolean(localStorage.getItem('pe_show_app'))
   })
 
   function navigate(s: Screen, id?: string) { setScreen(s); setSelectedId(id) }
