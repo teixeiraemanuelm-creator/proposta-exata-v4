@@ -65,6 +65,21 @@
 }
 
 /* Light mode */
+
+/* Light mode - Tailwind overrides */
+html.light-mode,
+html.light-mode body,
+html.light-mode #root,
+html.light-mode .bg-dark-900 { background: #f0f2f8 !important; color: #1a1829 !important; }
+html.light-mode main { background: #f0f2f8 !important; }
+html.light-mode .border-white\/6 { border-color: rgba(0,0,0,0.08) !important; }
+html.light-mode .bg-dark-900\/80 { background: rgba(240,242,248,0.9) !important; }
+html.light-mode .text-purple-300\/60 { color: #6b69a0 !important; }
+html.light-mode .text-purple-300\/40 { color: #9998b8 !important; }
+html.light-mode .bg-white\/7,
+html.light-mode .bg-white\/5,
+html.light-mode .bg-white\/12 { background: rgba(0,0,0,0.05) !important; }
+
 html.light-mode body { background: #f0f2f8 !important; color: #1a1829 !important; }
 html.light-mode .card { background: #ffffff !important; border-color: rgba(0,0,0,0.08) !important; color: #1a1829 !important; }
 html.light-mode .field { background: rgba(0,0,0,0.04) !important; border-color: rgba(0,0,0,0.15) !important; color: #1a1829 !important; }
