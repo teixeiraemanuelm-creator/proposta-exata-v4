@@ -162,7 +162,7 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
     const { data, error } = await salvarOrcamento(orcDados)
     if (error) { console.error(error); alert('Erro ao salvar: ' + error.message); setSaving(false); return }
     if (data?.id) {
-      await salvarItens(data.id, itens.map(({ _id, ...rest }) => rest))
+      await salvarItens(data.id, itens.map(({ _id, id, orcamento_id, created_at, updated_at, ordem, ...rest }) => rest))
       onNavigate('orcamento-detalhe', data.id)
     }
     setSaving(false)
