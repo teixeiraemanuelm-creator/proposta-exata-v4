@@ -930,15 +930,15 @@ export function Configuracoes() {
         <div className="flex flex-col gap-3">
           <Input label="Nome da Empresa / Razão Social" value={form.nome ?? ''} onChange={(e: any) => f({ nome: e.target.value })} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="CNPJ" value={form.cnpj ?? ''} onChange={(e: any) => f({ cnpj: maskCNPJLocal(e.target.value) })} placeholder="00.000.000/0001-00" />
-            <Input label="Inscrição Estadual (IE)" value={form.ie ?? ''} onChange={(e: any) => f({ ie: maskIELocal(e.target.value) })} placeholder="797.849.119.119" />
+            <Input label="CNPJ" value={maskCNPJLocal(form.cnpj ?? '')} onChange={(e: any) => f({ cnpj: maskCNPJLocal(e.target.value) })} placeholder="00.000.000/0001-00" />
+            <Input label="Inscrição Estadual (IE)" value={maskIELocal(form.ie ?? '')} onChange={(e: any) => f({ ie: maskIELocal(e.target.value) })} placeholder="797.849.119.119" />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Telefone / WhatsApp" value={form.telefone ?? ''} onChange={(e: any) => f({ telefone: maskTelefone(e.target.value) })} placeholder="(16) 98116-4639" />
+            <Input label="Telefone / WhatsApp" value={maskTelefone(form.telefone ?? '')} onChange={(e: any) => f({ telefone: maskTelefone(e.target.value) })} placeholder="(16) 98116-4639" />
             <Input label="Email" value={form.email ?? ''} onChange={(e: any) => f({ email: e.target.value })} />
           </div>
           <div className="relative">
-            <Input label="CEP" value={form.cep ?? ''} onChange={(e: any) => { const v = maskCEP(e.target.value); f({ cep: v }); handleCEP(v) }} placeholder="14075-610" />
+            <Input label="CEP" value={maskCEP(form.cep ?? '')} onChange={(e: any) => { const v = maskCEP(e.target.value); f({ cep: v }); handleCEP(v) }} placeholder="14075-610" />
             {cepLoading && <span className="absolute right-3 bottom-2.5 text-xs text-brand-500">Buscando...</span>}
           </div>
           <div className="grid grid-cols-3 gap-3">
