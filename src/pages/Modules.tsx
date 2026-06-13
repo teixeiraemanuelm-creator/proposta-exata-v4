@@ -269,7 +269,7 @@ export function Produtos() {
           </div>
           <Input label="Nome *" value={form.nome ?? ''} onChange={(e: any) => setForm((p: any) => ({ ...p, nome: e.target.value }))} placeholder="Ex: Piso Drenante 40x40x6" />
           <Textarea label="Descrição" value={form.descricao ?? ''} onChange={(e: any) => setForm((p: any) => ({ ...p, descricao: e.target.value }))} rows={2} />
-          <Input label="Preço (R$) *" type="text" inputMode="decimal" className="no-spinner" value={form.preco_unitario === 0 ? '' : String(form.preco_unitario)} placeholder="0,00" onChange={(e: any) => { const v = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.'); setForm((p: any) => ({ ...p, preco_unitario: parseFloat(v) || 0 })) }} />
+          <Input label="Preço (R$) *" type="number" min={0} step="0.01" className="no-spinner" value={form.preco_unitario ?? 0} onChange={(e: any) => setForm((p: any) => ({ ...p, preco_unitario: parseFloat(e.target.value) || 0 }))} />
           <Input label="Estoque inicial" type="number" min={0} step="any" value={form.estoque_disponivel ?? 0}
             onChange={(e: any) => setForm((p: any) => ({ ...p, estoque_disponivel: parseFloat(e.target.value) || 0 }))}
             hint="Quantidade disponível em estoque" />
