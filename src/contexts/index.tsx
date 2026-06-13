@@ -77,11 +77,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.remove('light-mode')
       document.body.style.background = '#0f0e17'
       document.body.style.color = 'white'
+      document.body.className = ''
     } else {
       document.documentElement.classList.remove('dark')
       document.documentElement.classList.add('light-mode')
       document.body.style.background = '#f0f2f8'
       document.body.style.color = '#1a1829'
+      document.body.className = 'light-mode'
     }
     localStorage.setItem('pe_theme', theme)
   }, [theme])
