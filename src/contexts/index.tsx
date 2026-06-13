@@ -2,13 +2,20 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, getEmpresa } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
+export type UserRole = 'owner' | 'admin' | 'vendedor' | 'visualizador'
+
 interface AuthCtx {
   user: User | null
   empresa: any
+  role: UserRole | null
   loading: boolean
   empresaLoading: boolean
   refreshEmpresa: () => Promise<void>
   setEmpresa: (e: any) => void
+  // helpers de permissão
+  podeEditar: boolean   // owner, admin, vendedor
+  podeGerenciar: boolean // owner, admin
+  isOwner: boolean
 }
 
 const AuthContext = createContext<AuthCtx | null>(null)
@@ -16,13 +23,15 @@ const AuthContext = createContext<AuthCtx | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [empresa, setEmpresa] = useState<any>(null)
+  const [role, setRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
   const [empresaLoading, setEmpresaLoading] = useState(false)
 
   async function loadEmpresa(uid: string) {
     setEmpresaLoading(true)
-    const e = await getEmpresa(uid)
-    setEmpresa(e)
+    const result = await getEmpresa(uid)
+    setEmpresa(result?.empresa ?? null)
+    setRole(result?.role ?? null)
     setEmpresaLoading(false)
   }
 
@@ -43,14 +52,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(u)
       setLoading(false)
       if (u) loadEmpresa(u.id)
-      else setEmpresa(null)
+      else { setEmpresa(null); setRole(null) }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
+  const podeEditar = role !== null && role !== 'visualizador'
+  const podeGerenciar = role === 'owner' || role === 'admin'
+  const isOwner = role === 'owner'
+
   return (
-    <AuthContext.Provider value={{ user, empresa, loading, empresaLoading, refreshEmpresa, setEmpresa }}>
+    <AuthContext.Provider value={{
+      user, empresa, role, loading, empresaLoading,
+      refreshEmpresa, setEmpresa,
+      podeEditar, podeGerenciar, isOwner,
+    }}>
       {children}
     </AuthContext.Provider>
   )
