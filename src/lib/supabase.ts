@@ -93,7 +93,7 @@ export const getOrcamentos = (empresaId: string) =>
   supabase.from('orcamentos').select('*, clientes(nome, telefone, email, cpf_cnpj)').eq('empresa_id', empresaId).order('created_at', { ascending: false })
 
 export const getOrcamento = (id: string) =>
-  supabase.from('orcamentos').select('*, clientes(*), orcamento_itens(*)').eq('id', id).single()
+  supabase.from('orcamentos').select('*, clientes(*), orcamento_itens(*), empresas(nome, logo_url, telefone, email)').eq('id', id).single()
 
 export const salvarOrcamento = (dados: any) =>
   dados.id
