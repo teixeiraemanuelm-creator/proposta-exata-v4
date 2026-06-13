@@ -52,15 +52,16 @@ export function OrcamentosLista({ onNavigate }: { onNavigate: (s: Screen, id?: s
           <EmptyState icon={<FileDown size={26} />} title="Nenhum orçamento" desc="Crie seu primeiro orçamento"
             action={<Btn size="sm" icon={<Plus size={13} />} onClick={() => onNavigate('orcamento-novo')}>Criar</Btn>} />
         ) : filtrado.map(o => (
-          <div key={o.id} className="table-row group grid-cols-[60px_1fr_100px_100px_100px_80px]" onClick={() => onNavigate('orcamento-detalhe', o.id)}>
+          // BUG 3 FIX: botões sempre visíveis (removido group/opacity-0), grid ajustado para 80px na última coluna
+          <div key={o.id} className="table-row grid-cols-[60px_1fr_100px_100px_100px_80px]" onClick={() => onNavigate('orcamento-detalhe', o.id)}>
             <span className="text-xs text-gray-500 font-mono">#{o.numero}</span>
             <span className="text-sm font-medium text-white truncate">{o.clientes?.nome ?? o.cliente_nome ?? '–'}</span>
             <span className="text-xs text-gray-400">{fmtData(o.created_at)}</span>
             <span><Badge status={o.status} /></span>
             <span className="text-sm font-semibold text-white tabular-nums">{R$(o.total)}</span>
             <div className="flex gap-1">
-              <button onClick={e => { e.stopPropagation(); onNavigate('orcamento-novo', o.id) }} className="p-1.5 rounded text-gray-600 hover:text-blue-400 hover:bg-blue-500/10 transition-colors opacity-100"><Edit2 size={13} /></button>
-              <button onClick={e => handleDelete(o.id, e)} className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-100"><Trash2 size={13} /></button>
+              <button onClick={e => { e.stopPropagation(); onNavigate('orcamento-novo', o.id) }} className="p-1.5 rounded text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"><Edit2 size={13} /></button>
+              <button onClick={e => handleDelete(o.id, e)} className="p-1.5 rounded text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
             </div>
           </div>
         ))}
@@ -77,6 +78,7 @@ const UNIDADES_LABEL: Record<string, string> = {
 
 export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavigate: (s: Screen, id?: string) => void }) {
   const { empresa } = useAuth()
+  // BUG 1 FIX: loading só começa true se há editId, caso contrário false desde o início
   const [loading, setLoading] = useState(!!editId)
   const [saving, setSaving] = useState(false)
   const [clientes, setClientes] = useState<any[]>([])
@@ -86,6 +88,7 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
   const [clienteId, setClienteId] = useState('')
   const [status, setStatus] = useState('rascunho')
   const [dataEmissao, setDataEmissao] = useState(hoje())
+  // BUG 2 FIX: validade armazenada sempre como número de dias (string numérica)
   const [validade, setValidade] = useState('15')
   const [responsavel, setResponsavel] = useState('Departamento Comercial')
   const [itens, setItens] = useState<any[]>([])
@@ -97,26 +100,50 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
 
   useEffect(() => {
     if (!empresa) return
-    getClientes(empresa.id).then(({ data }) => setClientes(data ?? []))
-    getProdutos(empresa.id).then(({ data }) => setProdutos(data ?? []))
-    getVendedores().then(({ data }) => setVendedores(data ?? []))
+
+    // BUG 1 FIX: carrega catálogos e orçamento em paralelo, só libera loading após tudo
+    const catalogPromises = [
+      getClientes(empresa.id).then(({ data }) => setClientes(data ?? [])),
+      getProdutos(empresa.id).then(({ data }) => setProdutos(data ?? [])),
+      getVendedores().then(({ data }) => setVendedores(data ?? [])),
+    ]
+
     if (editId) {
-      getOrcamento(editId).then(({ data }) => {
+      const orcPromise = getOrcamento(editId).then(({ data }) => {
         if (!data) return
         setClienteId(data.cliente_id ?? '')
         setStatus(data.status ?? 'rascunho')
         setDataEmissao(data.data_emissao ?? hoje())
-        setValidade(String(data.validade ?? 15))
-        setResponsavel(data.condicao_pagamento ?? '')
+
+        // BUG 2 FIX: validade no banco é uma data ISO (ex: "2025-08-01")
+        // Converte de volta para número de dias a partir de hoje
+        if (data.validade) {
+          const validadeDate = new Date(data.validade + 'T00:00:00') // força meia-noite local
+          const hoje = new Date()
+          hoje.setHours(0, 0, 0, 0)
+          const diffMs = validadeDate.getTime() - hoje.getTime()
+          const diffDias = Math.max(1, Math.round(diffMs / 86400000))
+          setValidade(String(diffDias))
+        } else {
+          setValidade('15')
+        }
+
+        setResponsavel((data as any).responsavel ?? 'Departamento Comercial')
         setCondicaoPagamento(data.condicao_pagamento ?? '')
         setServicos((data as any).servicos ?? '')
         setObservacoes(data.observacoes ?? '')
         setDesconto(data.desconto_percentual ?? 0)
         setFrete(data.frete ?? 0)
+
+        // BUG 1 FIX: garante que itens são carregados corretamente
         const its = (data as any).orcamento_itens ?? []
-        setItens(its.map((i: any) => ({ ...i, _id: i.id })))
-        setLoading(false)
+        setItens(its.map((i: any) => ({ ...i, _id: i.id ?? crypto.randomUUID() })))
       })
+
+      Promise.all([...catalogPromises, orcPromise]).finally(() => setLoading(false))
+    } else {
+      Promise.all(catalogPromises)
+      // Para novo orçamento, não há loading
     }
   }, [empresa])
 
@@ -137,10 +164,11 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
     if (!clienteId) { alert('Selecione um cliente antes de salvar.'); return }
     setSaving(true)
     const clienteNome = clientes.find(c => c.id === clienteId)?.nome ?? ''
-    
-    // Calculate validade date
+
+    // BUG 2 FIX: calcula data de validade a partir dos dias informados
+    const validadeDias = parseInt(validade) || 15
     const validadeDate = new Date()
-    validadeDate.setDate(validadeDate.getDate() + parseInt(validade))
+    validadeDate.setDate(validadeDate.getDate() + validadeDias)
     const validadeStr = validadeDate.toISOString().split('T')[0]
 
     const orcDados: any = {
@@ -150,6 +178,7 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
       status: status as any,
       data_emissao: dataEmissao,
       validade: validadeStr,
+      responsavel,
       condicao_pagamento: condicaoPagamento,
       observacoes,
       desconto_percentual: desconto,
@@ -324,8 +353,10 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
   const itens = orc.orcamento_itens ?? []
   const cliente = orc.clientes
 
-  // Format validade as days remaining
-  const validadeDias = orc.validade ? Math.max(0, Math.ceil((new Date(orc.validade).getTime() - Date.now()) / 86400000)) : null
+  // BUG 2 FIX: validade no banco é data ISO — mostra dias restantes corretamente
+  const validadeDias = orc.validade
+    ? Math.max(0, Math.ceil((new Date(orc.validade + 'T00:00:00').getTime() - new Date().setHours(0,0,0,0)) / 86400000))
+    : null
 
   // Format masks
   const cnpjFormatted = (empresa?.cnpj ?? '').replace(/\D/g, '')
@@ -375,7 +406,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
         {empresa && <span className="text-xs text-gray-500 hidden sm:block">{empresa.nome}</span>}
       </div>
 
-      {/* Action bar - igual Netlify */}
+      {/* Action bar */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         <Btn variant="whatsapp" size="sm" icon={<MessageCircle size={13} />}
           onClick={() => enviarWhatsApp(cliente?.telefone, id, orc.numero, empresa?.nome ?? '')}>
@@ -399,11 +430,9 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
 
       {/* Document card */}
       <div className="card overflow-hidden">
-        {/* Cliente section - no dark header, direto no card */}
         <div className="p-5 border-b border-white/6">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Cliente</p>
           <p className="font-bold text-white text-lg leading-tight">{cliente?.nome ?? orc.cliente_nome}</p>
-          {/* Grid 2 colunas */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-3">
             <div>
               <p className="text-xs text-gray-500">Pagamento</p>
@@ -415,7 +444,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
             </div>
             <div>
               <p className="text-xs text-gray-500">Data</p>
-              <p className="text-sm text-gray-200">{orc.data_emissao ? new Date(orc.data_emissao).toLocaleDateString('pt-BR') : fmtData(orc.created_at)}</p>
+              <p className="text-sm text-gray-200">{orc.data_emissao ? new Date(orc.data_emissao + 'T00:00:00').toLocaleDateString('pt-BR') : fmtData(orc.created_at)}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500">Responsável</p>
@@ -451,7 +480,6 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
               ))}
             </tbody>
           </table>
-          {/* Total - só texto laranja sem fundo */}
           <div className="flex justify-between items-center pt-3 border-t border-white/8 mt-1">
             <span className="text-sm font-bold text-gray-300">Total</span>
             <span className="text-xl font-bold text-brand-500 tabular-nums">{R$(orc.total)}</span>
