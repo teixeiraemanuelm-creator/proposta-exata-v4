@@ -65,6 +65,13 @@
 }
 
 /* Light mode */
+html.light-mode .bg-brand-500 { background-color: #2563eb !important; }
+html.light-mode .bg-brand-500\/10 { background-color: rgba(37,99,235,0.1) !important; }
+html.light-mode .bg-brand-500\/70 { background-color: rgba(37,99,235,0.7) !important; }
+html.light-mode .text-brand-400 { color: #2563eb !important; }
+html.light-mode .text-brand-500 { color: #2563eb !important; }
+html.light-mode .border-brand-500 { border-color: #2563eb !important; }
+
 
 /* Light mode - Tailwind overrides */
 html.light-mode,
