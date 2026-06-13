@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase, getEmpresa } from '@/lib/supabase'
+import { supabase, getEmpresa, getAssinatura } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export type UserRole = 'owner' | 'admin' | 'vendedor' | 'visualizador'
@@ -8,14 +8,18 @@ interface AuthCtx {
   user: User | null
   empresa: any
   role: UserRole | null
+  assinatura: any
+  plano: 'free' | 'pro'
   loading: boolean
   empresaLoading: boolean
   refreshEmpresa: () => Promise<void>
+  refreshAssinatura: () => Promise<void>
   setEmpresa: (e: any) => void
   // helpers de permissão
-  podeEditar: boolean   // owner, admin, vendedor
-  podeGerenciar: boolean // owner, admin
+  podeEditar: boolean
+  podeGerenciar: boolean
   isOwner: boolean
+  isPro: boolean
 }
 
 const AuthContext = createContext<AuthCtx | null>(null)
@@ -24,15 +28,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [empresa, setEmpresa] = useState<any>(null)
   const [role, setRole] = useState<UserRole | null>(null)
+  const [assinatura, setAssinatura] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [empresaLoading, setEmpresaLoading] = useState(false)
 
   async function loadEmpresa(uid: string) {
     setEmpresaLoading(true)
     const result = await getEmpresa(uid)
-    setEmpresa(result?.empresa ?? null)
+    const emp = result?.empresa ?? null
+    setEmpresa(emp)
     setRole(result?.role ?? null)
+    if (emp?.id) {
+      const { data: ass } = await getAssinatura(emp.id)
+      setAssinatura(ass ?? { plano: 'free', status: 'ativo' })
+    }
     setEmpresaLoading(false)
+  }
+
+  async function refreshAssinatura() {
+    if (empresa?.id) {
+      const { data: ass } = await getAssinatura(empresa.id)
+      setAssinatura(ass ?? { plano: 'free', status: 'ativo' })
+    }
   }
 
   async function refreshEmpresa() {
@@ -61,12 +78,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const podeEditar = role !== null && role !== 'visualizador'
   const podeGerenciar = role === 'owner' || role === 'admin'
   const isOwner = role === 'owner'
+  const plano: 'free' | 'pro' = assinatura?.plano === 'pro' && assinatura?.status === 'ativo' ? 'pro' : 'free'
+  const isPro = plano === 'pro'
 
   return (
     <AuthContext.Provider value={{
-      user, empresa, role, loading, empresaLoading,
-      refreshEmpresa, setEmpresa,
-      podeEditar, podeGerenciar, isOwner,
+      user, empresa, role, assinatura, plano, loading, empresaLoading,
+      refreshEmpresa, refreshAssinatura, setEmpresa,
+      podeEditar, podeGerenciar, isOwner, isPro,
     }}>
       {children}
     </AuthContext.Provider>
