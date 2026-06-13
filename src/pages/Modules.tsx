@@ -79,7 +79,7 @@ export function Clientes() {
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Clientes" subtitle="Gerencie o cadastro de clientes"
         action={<Btn icon={<Plus size={15} />} onClick={() => openModal()}>Novo Cliente</Btn>} />
 
@@ -233,7 +233,7 @@ export function Produtos() {
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Produtos / Serviços" subtitle={`${lista.length} produto(s) no catálogo`}
         action={<Btn icon={<Plus size={15} />} onClick={() => openModal()}>Novo Produto</Btn>} />
 
@@ -326,7 +326,7 @@ export function Recibos({ onNovoRecibo }: { onNovoRecibo: () => void }) {
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Recibos" subtitle={`${lista.length} emitido(s)`}
         action={<Btn icon={<Plus size={15} />} onClick={onNovoRecibo}>Novo Recibo</Btn>} />
 
@@ -473,7 +473,7 @@ export function Estoque() {
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Estoque" subtitle={`${estoque.length} produto(s)`}
         action={<Btn variant="secondary" icon={<RefreshCw size={14} />} onClick={carregar}>Atualizar</Btn>} />
 
@@ -575,7 +575,7 @@ export function Equipe() {
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Equipe de Vendas" subtitle={`${lista.length} membro(s)`}
         action={<Btn icon={<Plus size={15} />} onClick={() => openModal()}>Novo Vendedor</Btn>} />
 
@@ -691,7 +691,7 @@ export function Relatorios() {
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Relatórios" subtitle="Análise de desempenho"
         action={<Btn icon={<BarChart3 size={14} />} onClick={() => {}}>↓ Exportar PDF</Btn>} />
 
@@ -773,7 +773,7 @@ export function Pagamentos() {
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="w-full">
       <PageHeader title="Formas de Pagamento" subtitle="Gerencie as opções disponíveis"
         action={<Btn icon={<Plus size={15} />} onClick={() => { setForm({ name: '', is_active: true }); setModal({ open: true }) }}>Nova Forma</Btn>} />
 
