@@ -5,6 +5,7 @@ import { LoginPage, OnboardingPage } from '@/pages/Auth'
 import { Dashboard } from '@/pages/Dashboard'
 import { OrcamentosLista, OrcamentoForm, OrcamentoDetalhe, OrcamentoPublico } from '@/pages/Orcamentos'
 import { Clientes, Produtos, Recibos, ReciboForm, Estoque, Equipe, Relatorios, Pagamentos, Configuracoes } from '@/pages/Modules'
+import { LandingPage } from '@/pages/Landing'
 import { Spinner } from '@/components/ui'
 import { Logo } from '@/components/Logo'
 import { Sun, Moon } from 'lucide-react'
@@ -47,13 +48,37 @@ function AppShell() {
   const { user, empresa, loading, empresaLoading } = useAuth()
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [selectedId, setSelectedId] = useState<string>()
+  // showApp: true quando o usuário clicou em "Entrar" ou "Começar grátis" na landing
+  const [showApp, setShowApp] = useState(() => {
+    // Se já veio de /dashboard ou tem sessão anterior, entra direto no app
+    return window.location.pathname !== '/' || Boolean(localStorage.getItem('pe_show_app'))
+  })
 
   function navigate(s: Screen, id?: string) { setScreen(s); setSelectedId(id) }
 
-  // Check if it's a public URL
+  function enterApp() {
+    localStorage.setItem('pe_show_app', '1')
+    setShowApp(true)
+  }
+
+  // Rota pública de orçamento — sempre disponível
   if (window.location.pathname.startsWith('/orcamento-publico/')) {
     const id = window.location.pathname.split('/').pop() ?? ''
     return <OrcamentoPublico id={id} />
+  }
+
+  // Rota de aceitar convite
+  if (window.location.pathname.startsWith('/aceitar-convite')) {
+    const token = new URLSearchParams(window.location.search).get('token') ?? ''
+    // Manda para o app — a tela de login vai lidar com o token
+    localStorage.setItem('pe_convite_token', token)
+    localStorage.setItem('pe_show_app', '1')
+    if (!showApp) setShowApp(true)
+  }
+
+  // Landing page — exibida quando o usuário não pediu o app ainda
+  if (!showApp) {
+    return <LandingPage onEnterApp={enterApp} />
   }
 
   if (loading || (user && empresaLoading)) {
