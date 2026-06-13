@@ -193,3 +193,166 @@ export async function gerarPDF(orc: any, empresa: any, itens: any[]) {
 
   doc.save(`Orcamento_${orc.numero}.pdf`)
 }
+
+// ─── PDF Relatório Dashboard ───────────────────────────────────────────────────
+export async function gerarRelatorioPDF(
+  empresa: any,
+  orcamentos: any[],
+  periodo: string,
+  kpis: { receitaAprovada: number; totalEmitido: number; conversao: number; aprovados: number; pendentes: number; total: number }
+) {
+  const { default: jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
+
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+  const W = 210, pL = 15, pR = 15
+  const now = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+  // ─ Header
+  doc.setFillColor(15, 14, 23)
+  doc.rect(0, 0, W, 44, 'F')
+
+  let logoX = pL
+  if (empresa?.logo_url) {
+    try {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; img.src = empresa.logo_url })
+      if (img.complete && img.naturalWidth > 0) { doc.addImage(img, 'PNG', pL, 8, 16, 16); logoX = pL + 20 }
+    } catch {}
+  }
+
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(13)
+  doc.setFont('helvetica', 'bold')
+  doc.text(empresa?.nome ?? 'Empresa', logoX, 16)
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(180, 178, 210)
+  doc.text(`Relatório de Desempenho · Período: ${periodo}`, logoX, 23)
+  doc.text(`Gerado em ${now}`, logoX, 29)
+
+  // Badge relatório
+  doc.setFillColor(249, 115, 22)
+  doc.roundedRect(W - pR - 30, 10, 30, 16, 3, 3, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'bold')
+  doc.text('RELATÓRIO', W - pR - 15, 17, { align: 'center' })
+  doc.setFontSize(9)
+  doc.text(periodo.toUpperCase(), W - pR - 15, 23, { align: 'center' })
+
+  // ─ KPIs em grid 2x2
+  let y = 52
+  const kpiItems = [
+    { label: 'Receita Aprovada', value: R$(kpis.receitaAprovada), color: [34, 197, 94] as [number,number,number] },
+    { label: 'Total Emitido', value: R$(kpis.totalEmitido), color: [249, 115, 22] as [number,number,number] },
+    { label: 'Taxa de Conversão', value: `${kpis.conversao}%`, color: [59, 130, 246] as [number,number,number] },
+    { label: 'Propostas no Período', value: String(kpis.total), color: [168, 85, 247] as [number,number,number] },
+  ]
+
+  const boxW = (W - pL - pR - 6) / 2
+  kpiItems.forEach((k, i) => {
+    const x = pL + (i % 2) * (boxW + 6)
+    const yy = y + Math.floor(i / 2) * 28
+
+    doc.setFillColor(245, 244, 254)
+    doc.roundedRect(x, yy, boxW, 24, 3, 3, 'F')
+
+    doc.setFillColor(...k.color)
+    doc.roundedRect(x, yy, 4, 24, 2, 2, 'F')
+
+    doc.setTextColor(...k.color)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(k.value, x + 8, yy + 11)
+
+    doc.setTextColor(100, 98, 150)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.text(k.label, x + 8, yy + 19)
+  })
+
+  // ─ Mini gráfico de barras (últimos 30 dias)
+  y += 62
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(20, 20, 40)
+  doc.text('Volume de Orçamentos — últimos 30 dias', pL, y)
+  y += 4
+
+  const chartData = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (29 - i))
+    const ds = d.toDateString()
+    return orcamentos.filter(o => new Date(o.created_at).toDateString() === ds).length
+  })
+  const maxVal = Math.max(...chartData, 1)
+  const barMaxH = 18
+  const barW = (W - pL - pR) / 30
+
+  chartData.forEach((v, i) => {
+    const barH = Math.max((v / maxVal) * barMaxH, 0.5)
+    const x = pL + i * barW
+    if (v > 0) {
+      doc.setFillColor(249, 115, 22)
+    } else {
+      doc.setFillColor(230, 228, 240)
+    }
+    doc.rect(x + 0.5, y + barMaxH - barH, barW - 1, barH, 'F')
+  })
+
+  // Eixo X — início e fim
+  y += barMaxH + 2
+  doc.setFontSize(7)
+  doc.setTextColor(150, 148, 180)
+  doc.setFont('helvetica', 'normal')
+  const d0 = new Date(); d0.setDate(d0.getDate() - 29)
+  doc.text(d0.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), pL, y + 4)
+  doc.text(new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), W - pR, y + 4, { align: 'right' })
+
+  // ─ Tabela de orçamentos do período
+  y += 10
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(20, 20, 40)
+  doc.text(`Orçamentos do período (${orcamentos.length})`, pL, y)
+
+  const STATUS_PT: Record<string, string> = {
+    rascunho: 'Rascunho', enviado: 'Enviado', aprovado: 'Aprovado',
+    recusado: 'Recusado', cancelado: 'Cancelado', em_analise: 'Em análise',
+  }
+
+  autoTable(doc, {
+    startY: y + 4,
+    head: [['#', 'Cliente', 'Data', 'Status', 'Total']],
+    body: orcamentos.map(o => [
+      `#${String(o.numero).padStart(4, '0')}`,
+      (o.clientes?.nome ?? o.cliente_nome ?? '–').slice(0, 30),
+      new Date(o.created_at).toLocaleDateString('pt-BR'),
+      STATUS_PT[o.status] ?? o.status,
+      R$(o.total),
+    ]),
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: [26, 24, 41], textColor: [180, 178, 210], fontStyle: 'bold' },
+    columnStyles: {
+      0: { cellWidth: 18 },
+      2: { cellWidth: 22 },
+      3: { cellWidth: 24 },
+      4: { cellWidth: 28, halign: 'right' },
+    },
+    margin: { left: pL, right: pR },
+    alternateRowStyles: { fillColor: [248, 247, 255] },
+  })
+
+  // ─ Rodapé
+  const pageCount = (doc as any).internal.getNumberOfPages()
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i)
+    doc.setFontSize(7)
+    doc.setTextColor(180, 178, 210)
+    doc.text(`${empresa?.nome ?? ''} · Proposta Exata · propostaexata.com.br`, pL, 292)
+    doc.text(`Pág. ${i}/${pageCount}`, W - pR, 292, { align: 'right' })
+  }
+
+  doc.save(`Relatorio_${periodo.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`)
+}
