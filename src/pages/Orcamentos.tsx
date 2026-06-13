@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { Logo } from '@/components/Logo'
 import { Plus, Search, ArrowLeft, Trash2, Edit2, FileDown, MessageCircle, Mail, Link2, Copy, Check, Receipt, QrCode, X } from 'lucide-react'
 import { useAuth } from '@/contexts'
-import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase } from '@/lib/supabase'
+import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase, podecriarOrcamento } from '@/lib/supabase'
 import { R$, fmtData, hoje, calcItem, calcTotais, enviarWhatsApp, gerarPDF } from '@/lib/utils'
 import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal } from '@/components/ui'
 import type { Screen } from '@/types'
+import { CheckoutPro } from '@/pages/Planos'
 
 // ─── Lista (v2) ───────────────────────────────────────────────────────────────
 export function OrcamentosLista({ onNavigate }: { onNavigate: (s: Screen, id?: string) => void }) {
@@ -77,7 +78,9 @@ const UNIDADES_LABEL: Record<string, string> = {
 }
 
 export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavigate: (s: Screen, id?: string) => void }) {
-  const { empresa } = useAuth()
+  const { empresa, isPro, refreshAssinatura } = useAuth()
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [gateBlocked, setGateBlocked] = useState(false)
   // BUG 1 FIX: loading só começa true se há editId, caso contrário false desde o início
   const [loading, setLoading] = useState(!!editId)
   const [saving, setSaving] = useState(false)
@@ -100,6 +103,15 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
 
   useEffect(() => {
     if (!empresa) return
+
+    // Verificar limite do plano Free (só para novos orçamentos)
+    if (!editId && !isPro) {
+      podecriarOrcamento(empresa.id).then(({ data }) => {
+        if (data && !data.pode) {
+          setGateBlocked(true)
+        }
+      })
+    }
 
     // BUG 1 FIX: carrega catálogos e orçamento em paralelo, só libera loading após tudo
     const catalogPromises = [
@@ -197,6 +209,22 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
     }
     setSaving(false)
   }
+
+  if (gateBlocked) return (
+    <div className="w-full flex flex-col items-center justify-center py-20 gap-6 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-orange-500/15 flex items-center justify-center">
+        <span className="text-3xl">👑</span>
+      </div>
+      <div>
+        <h2 className="text-xl font-black text-white mb-2">Limite atingido</h2>
+        <p className="text-sm text-gray-400 max-w-xs">Você usou os 5 orçamentos do plano Free este mês.</p>
+        <p className="text-sm text-gray-500 mt-1">Assine o Pro para criar orçamentos ilimitados.</p>
+      </div>
+      <Btn icon={<Plus size={15} />} onClick={() => setShowCheckout(true)}>Assinar Pro — R$ 47/mês</Btn>
+      <button onClick={() => onNavigate('orcamentos')} className="text-sm text-gray-600 hover:text-gray-400">Voltar</button>
+      {showCheckout && <CheckoutPro onClose={() => setShowCheckout(false)} onSuccess={() => { refreshAssinatura(); setGateBlocked(false) }} />}
+    </div>
+  )
 
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
