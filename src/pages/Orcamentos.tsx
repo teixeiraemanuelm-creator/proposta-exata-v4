@@ -353,7 +353,12 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
           onClick={() => enviarWhatsApp(cliente?.telefone, id, orc.numero, empresa?.nome ?? '')}>
           WhatsApp
         </Btn>
-        <Btn variant="secondary" size="sm" icon={<Mail size={13} />} onClick={() => enviarEmail(cliente?.email, orc.numero, empresa?.nome ?? '', orc.total)}>Email</Btn>
+        <Btn variant="secondary" size="sm" icon={<Mail size={13} />} onClick={() => {
+            const link = `${window.location.origin}/orcamento-publico/${id}`
+            const assunto = encodeURIComponent(`Orçamento #${String(orc.numero).padStart(4,'0')} - ${empresa?.nome ?? ''}`)
+            const corpo = encodeURIComponent(`Olá,\n\nSegue o link para visualizar o orçamento:\n\n${link}\n\nAtenciosamente,\n${empresa?.nome ?? ''}`)
+            window.open(`mailto:${cliente?.email ?? ''}?subject=${assunto}&body=${corpo}`)
+          }}>Email</Btn>
         <Btn variant="secondary" size="sm" icon={copied ? <Check size={13} /> : <Link2 size={13} />} onClick={copyLink}>
           {copied ? 'Copiado!' : 'Copiar link'}
         </Btn>
