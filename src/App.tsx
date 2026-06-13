@@ -1,12 +1,47 @@
 import { useState } from 'react'
-import { AuthProvider, ThemeProvider, useAuth } from '@/contexts'
+import { AuthProvider, ThemeProvider, useAuth, useTheme } from '@/contexts'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { LoginPage, OnboardingPage } from '@/pages/Auth'
 import { Dashboard } from '@/pages/Dashboard'
 import { OrcamentosLista, OrcamentoForm, OrcamentoDetalhe, OrcamentoPublico } from '@/pages/Orcamentos'
 import { Clientes, Produtos, Recibos, ReciboForm, Estoque, Equipe, Relatorios, Pagamentos, Configuracoes } from '@/pages/Modules'
 import { Spinner } from '@/components/ui'
+import { Logo } from '@/components/Logo'
+import { Sun, Moon } from 'lucide-react'
 import type { Screen } from '@/types'
+
+const SCREEN_LABELS: Record<string, string> = {
+  dashboard: 'Dashboard',
+  orcamentos: 'Orçamentos',
+  'orcamento-novo': 'Orçamentos',
+  'orcamento-detalhe': 'Orçamentos',
+  clientes: 'Clientes',
+  'cliente-novo': 'Clientes',
+  produtos: 'Produtos',
+  recibos: 'Recibos',
+  'recibo-novo': 'Recibos',
+  estoque: 'Estoque',
+  equipe: 'Equipe',
+  relatorios: 'Relatórios',
+  pagamentos: 'Pagamentos',
+  configuracoes: 'Configurações',
+}
+
+function Topbar({ screen }: { screen: Screen }) {
+  const { theme, toggleTheme } = useTheme()
+  return (
+    <div className="flex items-center justify-between px-6 py-3 border-b border-white/6 bg-dark-900/80 backdrop-blur-sm sticky top-0 z-10">
+      <div className="flex items-center gap-3">
+        <Logo size="sm" />
+        <span className="text-sm text-gray-400">{SCREEN_LABELS[screen] ?? ''}</span>
+      </div>
+      <button onClick={toggleTheme} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+        {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+        {theme === 'dark' ? 'Claro' : 'Escuro'}
+      </button>
+    </div>
+  )
+}
 
 function AppShell() {
   const { user, empresa, loading, empresaLoading } = useAuth()
@@ -51,11 +86,14 @@ function AppShell() {
   return (
     <div className="min-h-screen flex bg-dark-900">
       <Sidebar current={screen} onNavigate={navigate} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="px-4 lg:px-8 py-6 lg:py-8 pl-16 lg:pl-8">
-          {renderScreen()}
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <Topbar screen={screen} />
+        <main className="flex-1 overflow-y-auto">
+          <div className="px-4 lg:px-8 py-6 lg:py-8 pl-16 lg:pl-8">
+            {renderScreen()}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
