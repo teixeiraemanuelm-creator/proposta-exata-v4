@@ -205,9 +205,11 @@ export function Produtos() {
   }
 
   async function handleSave() {
-    if (!form.nome?.trim()) return
+    if (!form.nome?.trim()) return alert('Preencha o nome do produto')
+    if (!empresa?.id) return alert('Empresa não carregada')
     setSaving(true)
-    const { data } = await salvarProduto({ ...form, empresa_id: empresa?.id })
+    const { data, error } = await salvarProduto({ ...form, empresa_id: empresa.id })
+    if (error) { alert('Erro ao salvar: ' + error.message); setSaving(false); return }
     if (data) {
       setLista(p => p.some(x => x.id === data.id) ? p.map(x => x.id === data.id ? data : x) : [data, ...p])
       setModal({ open: false })
