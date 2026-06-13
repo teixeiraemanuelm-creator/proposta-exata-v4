@@ -827,6 +827,21 @@ export function Configuracoes() {
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  function maskCNPJLocal(v: string) {
+    return v.replace(/\D/g, '').slice(0, 14)
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+  }
+
+  function maskIELocal(v: string) {
+    return v.replace(/\D/g, '').slice(0, 12)
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,3})$/, '$1.$2')
+  }
+
   // Apply masks when empresa data loads
   useEffect(() => {
     if (!empresa) return
@@ -861,21 +876,6 @@ export function Configuracoes() {
       f({ logo_url: urlData.publicUrl })
     }
     setUploading(false)
-  }
-
-  function maskCNPJLocal(v: string) {
-    return v.replace(/\D/g, '').slice(0, 14)
-      .replace(/(\d{2})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1/$2')
-      .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
-  }
-
-  function maskIELocal(v: string) {
-    return v.replace(/\D/g, '').slice(0, 12)
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,3})$/, '$1.$2')
   }
 
   async function handleSave() {
