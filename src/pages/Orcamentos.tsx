@@ -412,7 +412,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
   }
 
   function copyLink() {
-    const link = `${window.location.origin}/orcamento-publico/${id}`
+    const link = `https://propostaexata.com.br/orcamento-publico/${id}`
     navigator.clipboard.writeText(link)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -484,7 +484,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
           WhatsApp
         </Btn>
         <Btn variant="secondary" size="sm" icon={<Mail size={13} />} onClick={() => {
-            const link = `${window.location.origin}/orcamento-publico/${id}`
+            const link = `https://propostaexata.com.br/orcamento-publico/${id}`
             const assunto = encodeURIComponent(`Orçamento #${String(orc.numero).padStart(4,'0')} - ${empresa?.nome ?? ''}`)
             const corpo = encodeURIComponent(`Olá,\n\nSegue o link para visualizar o orçamento:\n\n${link}\n\nAtenciosamente,\n${empresa?.nome ?? ''}`)
             window.open(`mailto:${cliente?.email ?? ''}?subject=${assunto}&body=${corpo}`)
@@ -622,7 +622,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
                     const tel = orc?.clientes?.telefone ?? orc?.clientes?.celular ?? ''
                     const num = tel.replace(/\D/g, '')
                     const msg = encodeURIComponent(
-                      `Olá! Segue o Pix para pagamento do orçamento #${orc?.numero ?? ''} no valor de R$ ${pixData.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.\n\nPix Copia e Cola:\n${pixData.pix_copia_e_cola}\n\nValidade: 24 horas.`
+                      `Olá! Segue o Pix para pagamento do orçamento #${orc?.numero ?? ''} — R$ ${pixData.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.\n\n*Pix Copia e Cola* (copie o código abaixo):\n\n${pixData.pix_copia_e_cola}\n\n_Validade: 24 horas._\n\nQualquer dúvida estamos à disposição!`
                     )
                     window.open(`https://wa.me/55${num}?text=${msg}`, '_blank')
                   }}
