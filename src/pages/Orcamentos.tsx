@@ -492,6 +492,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
           </div>
         </div>
       </div>
+    </div>
   )
 }
 
