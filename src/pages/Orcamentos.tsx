@@ -587,7 +587,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
                 <div className="text-center">
                   <p className="text-xs text-gray-500 mb-1">Valor a pagar</p>
                   <p className="text-3xl font-black text-orange-400">{R$(pixData.valor)}</p>
-                  <p className="text-xs text-gray-600 mt-1">Expira em 30 minutos</p>
+                  <p className="text-xs text-gray-600 mt-1">Expira em 24 horas</p>
                 </div>
 
                 {pixData.qr_code_base64 && (
@@ -617,6 +617,19 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
                   </div>
                 )}
 
+                <button
+                  onClick={() => {
+                    const tel = orc?.clientes?.telefone ?? orc?.clientes?.celular ?? ''
+                    const num = tel.replace(/\D/g, '')
+                    const msg = encodeURIComponent(
+                      `Olá! Segue o Pix para pagamento do orçamento #${orc?.numero ?? ''} no valor de R$ ${pixData.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.\n\nPix Copia e Cola:\n${pixData.pix_copia_e_cola}\n\nValidade: 24 horas.`
+                    )
+                    window.open(`https://wa.me/55${num}?text=${msg}`, '_blank')
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+                >
+                  <MessageCircle size={15} /> Enviar por WhatsApp
+                </button>
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-xs text-emerald-400 text-center">
                   ✓ Após o pagamento, atualize o status do orçamento para "Aprovado"
                 </div>
