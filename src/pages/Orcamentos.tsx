@@ -487,7 +487,8 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
             const link = `https://propostaexata.com.br/orcamento-publico/${id}`
             const assunto = encodeURIComponent(`Orçamento #${String(orc.numero).padStart(4,'0')} - ${empresa?.nome ?? ''}`)
             const corpo = encodeURIComponent(`Olá,\n\nSegue o link para visualizar o orçamento:\n\n${link}\n\nAtenciosamente,\n${empresa?.nome ?? ''}`)
-            window.open(`mailto:${cliente?.email ?? ''}?subject=${assunto}&body=${corpo}`)
+            const emailDestino = encodeURIComponent(cliente?.email ?? '')
+            window.open(`https://mail.google.com/mail/?view=cm&to=${emailDestino}&su=${assunto}&body=${corpo}`, '_blank')
           }}>Email</Btn>
         <Btn variant="secondary" size="sm" icon={copied ? <Check size={13} /> : <Link2 size={13} />} onClick={copyLink}>
           {copied ? 'Copiado!' : 'Copiar link'}
