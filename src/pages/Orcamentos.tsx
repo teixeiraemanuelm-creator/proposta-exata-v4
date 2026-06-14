@@ -6,7 +6,6 @@ import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcam
 import { R$, fmtData, hoje, calcItem, calcTotais, enviarWhatsApp, gerarPDF } from '@/lib/utils'
 import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal } from '@/components/ui'
 import type { Screen } from '@/types'
-import { CheckoutPro } from '@/pages/Planos'
 
 // ─── Lista (v2) ───────────────────────────────────────────────────────────────
 export function OrcamentosLista({ onNavigate }: { onNavigate: (s: Screen, id?: string) => void }) {
@@ -78,9 +77,7 @@ const UNIDADES_LABEL: Record<string, string> = {
 }
 
 export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavigate: (s: Screen, id?: string) => void }) {
-  const { empresa, isPro, refreshAssinatura } = useAuth()
-  const [showCheckout, setShowCheckout] = useState(false)
-  const [gateBlocked, setGateBlocked] = useState(false)
+  const { empresa } = useAuth()
   // BUG 1 FIX: loading só começa true se há editId, caso contrário false desde o início
   const [loading, setLoading] = useState(!!editId)
   const [saving, setSaving] = useState(false)
@@ -103,6 +100,15 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
 
   useEffect(() => {
     if (!empresa) return
+
+    // Verificar limite do plano Free (só para novos orçamentos)
+    if (!editId && !isPro) {
+      podecriarOrcamento(empresa.id).then(({ data }) => {
+        if (data && !data.pode) {
+          setGateBlocked(true)
+        }
+      })
+    }
 
     // BUG 1 FIX: carrega catálogos e orçamento em paralelo, só libera loading após tudo
     const catalogPromises = [
@@ -200,22 +206,6 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
     }
     setSaving(false)
   }
-
-  if (gateBlocked) return (
-    <div className="w-full flex flex-col items-center justify-center py-20 gap-6 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-orange-500/15 flex items-center justify-center">
-        <span className="text-3xl">👑</span>
-      </div>
-      <div>
-        <h2 className="text-xl font-black text-white mb-2">Limite atingido</h2>
-        <p className="text-sm text-gray-400 max-w-xs">Você usou os 5 orçamentos do plano Free este mês.</p>
-        <p className="text-sm text-gray-500 mt-1">Assine o Pro para criar orçamentos ilimitados.</p>
-      </div>
-      <Btn icon={<Plus size={15} />} onClick={() => setShowCheckout(true)}>Assinar Pro — R$ 47/mês</Btn>
-      <button onClick={() => onNavigate('orcamentos')} className="text-sm text-gray-600 hover:text-gray-400">Voltar</button>
-      {showCheckout && <CheckoutPro onClose={() => setShowCheckout(false)} onSuccess={() => { refreshAssinatura(); setGateBlocked(false) }} />}
-    </div>
-  )
 
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
@@ -343,9 +333,11 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
   const [orc, setOrc] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+
   useEffect(() => {
     getOrcamento(id).then(({ data }) => { setOrc(data); setLoading(false) })
   }, [id])
+
 
   async function changeStatus(status: string) {
     await salvarOrcamento({ id, status })
@@ -508,7 +500,68 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
             <Logo size="sm" className="h-4 ml-1 opacity-40" />
           </div>
         </div>
-      </div>}.\n\n*Pix Copia e Cola* (copie o código abaixo):\n\n${pixData.pix_copia_e_cola}\n\n_Validade: 24 horas._\n\nQualquer dúvida estamos à disposição!`
+      </div>
+{/* Modal Pix */}
+      {pixModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="card w-full max-w-sm p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-white flex items-center gap-2"><QrCode size={18} className="text-orange-400" /> Pix Cobrança</h2>
+              <button onClick={() => setPixModal(false)} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5"><X size={16} /></button>
+            </div>
+
+            {pixLoading && (
+              <div className="flex flex-col items-center gap-3 py-6">
+                <Spinner size={32} />
+                <p className="text-sm text-gray-400">Gerando QR Code...</p>
+              </div>
+            )}
+
+            {pixErro && !pixLoading && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-sm text-red-400">{pixErro}</div>
+            )}
+
+            {pixData && !pixLoading && (
+              <>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500 mb-1">Valor a pagar</p>
+                  <p className="text-3xl font-black text-orange-400">{R$(pixData.valor)}</p>
+                  <p className="text-xs text-gray-600 mt-1">Expira em 24 horas</p>
+                </div>
+
+                {pixData.qr_code_base64 && (
+                  <div className="flex justify-center">
+                    <img
+                      src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                      alt="QR Code Pix"
+                      className="w-48 h-48 rounded-xl border border-white/10"
+                    />
+                  </div>
+                )}
+
+                {pixData.pix_copia_e_cola && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-gray-500">Pix Copia e Cola</p>
+                    <div className="bg-white/5 rounded-xl p-3 flex items-start gap-2">
+                      <p className="text-xs text-gray-400 break-all flex-1 font-mono leading-relaxed">
+                        {pixData.pix_copia_e_cola.slice(0, 60)}...
+                      </p>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(pixData.pix_copia_e_cola)}
+                        className="flex-shrink-0 p-1.5 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors"
+                      >
+                        <Copy size={13} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    const tel = orc?.clientes?.telefone ?? orc?.clientes?.celular ?? ''
+                    const num = tel.replace(/\D/g, '')
+                    const msg = encodeURIComponent(
+                      `Olá! Segue o Pix para pagamento do orçamento #${orc?.numero ?? ''} — R$ ${pixData.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.\n\n*Pix Copia e Cola* (copie o código abaixo):\n\n${pixData.pix_copia_e_cola}\n\n_Validade: 24 horas._\n\nQualquer dúvida estamos à disposição!`
                     )
                     window.open(`https://wa.me/55${num}?text=${msg}`, '_blank')
                   }}
