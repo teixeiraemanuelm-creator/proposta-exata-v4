@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Logo } from '@/components/Logo'
-import { Plus, Search, ArrowLeft, Trash2, Edit2, FileDown, MessageCircle, Mail, Link2, Copy, Check, Receipt, QrCode, X } from 'lucide-react'
+import { Plus, Search, ArrowLeft, Trash2, Edit2, FileDown, MessageCircle, Mail, Link2, Copy, Check, Receipt } from 'lucide-react'
 import { useAuth } from '@/contexts'
-import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase, podecriarOrcamento } from '@/lib/supabase'
+import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase } from '@/lib/supabase'
 import { R$, fmtData, hoje, calcItem, calcTotais, enviarWhatsApp, gerarPDF } from '@/lib/utils'
 import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal } from '@/components/ui'
 import type { Screen } from '@/types'
@@ -496,7 +496,6 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
         <Btn variant="secondary" size="sm" icon={<FileDown size={13} />} onClick={() => gerarPDF(orc, empresa, itens)}>PDF</Btn>
         <Btn variant="secondary" size="sm" icon={<Edit2 size={13} />} onClick={() => onNavigate('orcamento-novo', id)}>Editar</Btn>
         <Btn variant="secondary" size="sm" icon={<Copy size={13} />}>Duplicar</Btn>
-        <Btn variant="secondary" size="sm" icon={<QrCode size={13} />} onClick={handleGerarPix}>Pix</Btn>
         <Btn variant="secondary" size="sm" icon={<Receipt size={13} />} onClick={() => onNavigate('recibo-novo')}>Gerar Recibo</Btn>
         <Btn variant="danger" size="sm" icon={<Trash2 size={13} />} onClick={handleDelete} />
       </div>
