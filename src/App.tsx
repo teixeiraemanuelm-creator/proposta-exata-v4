@@ -7,6 +7,7 @@ import { OrcamentosLista, OrcamentoForm, OrcamentoDetalhe, OrcamentoPublico } fr
 import { Clientes, Produtos, Recibos, ReciboForm, Estoque, Equipe, Relatorios, Pagamentos, Configuracoes } from '@/pages/Modules'
 import { LandingPage } from '@/pages/Landing'
 import { Planos } from '@/pages/Planos'
+import { PaginaFundadores } from '@/pages/Fundadores'
 import { Spinner } from '@/components/ui'
 import { Logo } from '@/components/Logo'
 import { Sun, Moon } from 'lucide-react'
@@ -65,6 +66,11 @@ function AppShell() {
   function enterApp() {
     localStorage.setItem('pe_show_app', '1')
     setShowApp(true)
+  }
+
+  // Rota exclusiva dos Fundadores
+  if (window.location.pathname === '/fundadores') {
+    return <PaginaFundadores />
   }
 
   // Rota de callback OAuth (Google login)
