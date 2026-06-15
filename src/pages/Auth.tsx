@@ -3,6 +3,7 @@ import { Logo } from '@/components/Logo'
 import { Btn, Input } from '@/components/ui'
 import { signInEmail, signInGoogle, signUp, criarEmpresa } from '@/lib/supabase'
 import { useAuth } from '@/contexts'
+import { maskCNPJ } from '@/lib/utils'
 import { Building2, ArrowRight, Eye, EyeOff } from 'lucide-react'
 
 export function LoginPage() {
@@ -127,7 +128,7 @@ export function OnboardingPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <Input label="Nome da empresa *" value={form.nome} onChange={(e: any) => f({ nome: e.target.value })} placeholder="Minha Empresa Ltda." required />
             <div className="grid grid-cols-2 gap-3">
-              <Input label="CNPJ" value={form.cnpj} onChange={(e: any) => f({ cnpj: e.target.value })} placeholder="00.000.000/0001-00" />
+              <Input label="CNPJ" value={form.cnpj} onChange={(e: any) => f({ cnpj: maskCNPJ(e.target.value) })} placeholder="00.000.000/0001-00" />
               <Input label="Telefone/WhatsApp" value={form.telefone} onChange={(e: any) => f({ telefone: e.target.value })} placeholder="(16) 98116-4639" />
             </div>
             <Input label="Email" value={form.email} onChange={(e: any) => f({ email: e.target.value })} />

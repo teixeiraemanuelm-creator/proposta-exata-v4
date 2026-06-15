@@ -77,10 +77,11 @@ const UNIDADES_LABEL: Record<string, string> = {
 }
 
 export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavigate: (s: Screen, id?: string) => void }) {
-  const { empresa } = useAuth()
+  const { empresa, isPro } = useAuth()
   // BUG 1 FIX: loading só começa true se há editId, caso contrário false desde o início
   const [loading, setLoading] = useState(!!editId)
   const [saving, setSaving] = useState(false)
+  const [limiteAtingido, setLimiteAtingido] = useState(false)
   const [clientes, setClientes] = useState<any[]>([])
   const [produtos, setProdutos] = useState<any[]>([])
   const [vendedores, setVendedores] = useState<any[]>([])
@@ -100,6 +101,15 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
 
   useEffect(() => {
     if (!empresa) return
+
+    // Verifica limite de orçamentos para plano Free (apenas para novos orçamentos)
+    if (!editId && !isPro) {
+      import('@/lib/supabase').then(({ podecriarOrcamento }) => {
+        podecriarOrcamento(empresa.id).then(({ data }) => {
+          if (data === false) setLimiteAtingido(true)
+        })
+      })
+    }
 
     // BUG 1 FIX: carrega catálogos e orçamento em paralelo, só libera loading após tudo
     const catalogPromises = [
@@ -163,46 +173,60 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
     if (!empresa) return
     if (!clienteId) { alert('Selecione um cliente antes de salvar.'); return }
     setSaving(true)
-    const clienteNome = clientes.find(c => c.id === clienteId)?.nome ?? ''
+    try {
+      const clienteNome = clientes.find(c => c.id === clienteId)?.nome ?? ''
 
-    // BUG 2 FIX: calcula data de validade a partir dos dias informados
-    const validadeDias = parseInt(validade) || 15
-    const validadeDate = new Date()
-    validadeDate.setDate(validadeDate.getDate() + validadeDias)
-    const validadeStr = validadeDate.toISOString().split('T')[0]
+      const validadeDias = parseInt(validade) || 15
+      const validadeDate = new Date()
+      validadeDate.setDate(validadeDate.getDate() + validadeDias)
+      const validadeStr = validadeDate.toISOString().split('T')[0]
 
-    const orcDados: any = {
-      empresa_id: empresa.id,
-      cliente_id: clienteId,
-      cliente_nome: clienteNome,
-      status: status as any,
-      data_emissao: dataEmissao,
-      validade: validadeStr,
-      responsavel,
-      condicao_pagamento: condicaoPagamento,
-      observacoes,
-      desconto_percentual: desconto,
-      desconto_valor: descontoVal,
-      frete,
-      subtotal,
-      total,
+      const orcDados: any = {
+        empresa_id: empresa.id,
+        cliente_id: clienteId,
+        cliente_nome: clienteNome,
+        status: status as any,
+        data_emissao: dataEmissao,
+        validade: validadeStr,
+        responsavel,
+        condicao_pagamento: condicaoPagamento,
+        observacoes,
+        desconto_percentual: desconto,
+        desconto_valor: descontoVal,
+        frete,
+        subtotal,
+        total,
+      }
+      if (editId) orcDados.id = editId
+
+      const { data, error } = await salvarOrcamento(orcDados)
+      if (error) { alert('Erro ao salvar: ' + error.message); return }
+      if (data?.id) {
+        await salvarItens(data.id, itens.map(({ _id, id, orcamento_id, created_at, updated_at, ordem, ...rest }) => rest))
+        onNavigate('orcamento-detalhe', data.id)
+      }
+    } catch (err: any) {
+      alert('Erro inesperado. Tente novamente.')
+    } finally {
+      setSaving(false)
     }
-    if (editId) orcDados.id = editId
-
-    const { data, error } = await salvarOrcamento(orcDados)
-    if (error) { console.error(error); alert('Erro ao salvar: ' + error.message); setSaving(false); return }
-    if (data?.id) {
-      await salvarItens(data.id, itens.map(({ _id, id, orcamento_id, created_at, updated_at, ordem, ...rest }) => rest))
-      onNavigate('orcamento-detalhe', data.id)
-    }
-    setSaving(false)
   }
 
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>
 
-  const clienteOptions = [{ value: '', label: 'Selecione um cliente...' }, ...clientes.map(c => ({ value: c.id, label: c.nome }))]
-  const statusOptions = [
-    { value: 'rascunho', label: 'Rascunho' },
+  if (limiteAtingido) return (
+    <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-orange-500/15 flex items-center justify-center mb-5">
+        <span className="text-3xl">🔒</span>
+      </div>
+      <h2 className="text-xl font-black text-white mb-2">Limite atingido</h2>
+      <p className="text-sm text-gray-400 max-w-xs mb-6">Você usou os 5 orçamentos do Plano Free este mês. Faça upgrade para criar orçamentos ilimitados.</p>
+      <div className="flex flex-col gap-3 w-full max-w-xs">
+        <a href="/fundadores" className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm text-center transition-colors">Ver planos Pro</a>
+        <button onClick={() => onNavigate('orcamentos')} className="text-sm text-gray-500 hover:text-gray-300">Voltar</button>
+      </div>
+    </div>
+  )
     { value: 'enviado', label: 'Enviado' },
     { value: 'em_analise', label: 'Em análise' },
     { value: 'aprovado', label: 'Aprovado' },
