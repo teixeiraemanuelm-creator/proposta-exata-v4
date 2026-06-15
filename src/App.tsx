@@ -28,6 +28,7 @@ const SCREEN_LABELS: Record<string, string> = {
   relatorios: 'Relatórios',
   pagamentos: 'Pagamentos',
   configuracoes: 'Configurações',
+  planos: 'Plano & Assinatura',
 }
 
 function Topbar({ screen }: { screen: Screen }) {
@@ -83,6 +84,11 @@ function AppShell() {
     return <OrcamentoPublico id={id} />
   }
 
+  // Rota pública dos Fundadores — não requer login nem showApp
+  if (window.location.pathname === '/fundadores') {
+    return <PaginaFundadores />
+  }
+
   // Rota de aceitar convite
   if (window.location.pathname.startsWith('/aceitar-convite')) {
     const token = new URLSearchParams(window.location.search).get('token') ?? ''
@@ -99,11 +105,6 @@ function AppShell() {
 
   if (loading || (user && empresaLoading)) {
     return <div className="min-h-screen bg-dark-900 flex items-center justify-center"><Spinner size={36} /></div>
-  }
-
-  // Rota pública dos Fundadores — não requer login
-  if (window.location.pathname === '/fundadores') {
-    return <PaginaFundadores />
   }
 
   if (!user) return <LoginPage />

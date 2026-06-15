@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { CheckCircle2, Zap, Crown, ArrowRight, X, QrCode, CreditCard } from 'lucide-react'
+import { CheckCircle2, Zap, Crown, ArrowRight, X, QrCode, CreditCard, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/contexts'
 import { supabase, ativarPlano } from '@/lib/supabase'
 import { R$ } from '@/lib/utils'
@@ -342,10 +342,111 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
   )
 }
 
+// ─── Modal Cancelar Assinatura ────────────────────────────────────────────────
+function CancelarAssinatura({ onClose, onCancelado }: { onClose: () => void; onCancelado: () => void }) {
+  const { empresa, refreshAssinatura } = useAuth()
+  const [step, setStep] = useState<'confirm' | 'loading' | 'done'>('confirm')
+  const [erro, setErro] = useState('')
+
+  async function cancelar() {
+    if (!empresa) return
+    setStep('loading')
+    setErro('')
+    try {
+      const { error } = await supabase
+        .from('assinaturas')
+        .update({
+          status: 'cancelado',
+          cancelado_em: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('empresa_id', empresa.id)
+
+      if (error) throw error
+      await refreshAssinatura()
+      setStep('done')
+      setTimeout(() => { onCancelado(); onClose() }, 2500)
+    } catch {
+      setErro('Erro ao cancelar. Tente novamente ou entre em contato.')
+      setStep('confirm')
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-[#13121f] border border-white/10 rounded-2xl w-full max-w-sm p-6 flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-black text-white text-sm flex items-center gap-2">
+            <AlertTriangle size={16} className="text-red-400" />
+            Cancelar assinatura
+          </h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5"><X size={16} /></button>
+        </div>
+
+        {step === 'done' && (
+          <div className="flex flex-col items-center gap-3 py-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gray-500/15 flex items-center justify-center">
+              <CheckCircle2 size={28} className="text-gray-400" />
+            </div>
+            <div>
+              <p className="font-black text-white mb-1">Assinatura cancelada</p>
+              <p className="text-xs text-gray-400">Você voltou ao plano Free. Obrigado por ter usado o Pro!</p>
+            </div>
+          </div>
+        )}
+
+        {step === 'loading' && (
+          <div className="flex flex-col items-center gap-3 py-8">
+            <Spinner size={32} />
+            <p className="text-sm text-gray-400">Cancelando...</p>
+          </div>
+        )}
+
+        {step === 'confirm' && (
+          <>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+              <p className="text-sm text-red-300 font-semibold mb-2">O que você vai perder:</p>
+              <ul className="flex flex-col gap-1.5">
+                {['Orçamentos ilimitados', 'Múltiplos usuários', 'PDF com logo', 'Relatórios avançados'].map(f => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-red-400/80">
+                    <X size={12} className="flex-shrink-0" /> {f}
+                </li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-xs text-gray-500 text-center">
+              Seu plano será rebaixado para Free imediatamente. Seus dados permanecem salvos.
+            </p>
+            {erro && <p className="text-sm text-red-400 bg-red-500/10 rounded-xl px-4 py-2 text-center">{erro}</p>}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={cancelar}
+                className="w-full py-3 rounded-xl bg-red-600/80 hover:bg-red-600 text-white font-bold text-sm transition-colors"
+              >
+                Sim, cancelar minha assinatura
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full py-2.5 rounded-xl border border-white/10 text-gray-300 font-semibold text-sm hover:bg-white/5 transition-colors"
+              >
+                Manter Pro
+              </button>
+            </div>
+            <p className="text-xs text-gray-700 text-center">
+              Dúvidas? <a href="https://wa.me/5516991169184" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-500">Fale conosco pelo WhatsApp</a>
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Tela Planos ──────────────────────────────────────────────────────────────
 export function Planos() {
-  const { plano, assinatura } = useAuth()
+  const { plano, assinatura, refreshAssinatura } = useAuth()
   const [showCheckout, setShowCheckout] = useState(false)
+  const [showCancelar, setShowCancelar] = useState(false)
   const isPro = plano === 'pro'
 
   return (
@@ -425,10 +526,30 @@ export function Planos() {
         </div>
       )}
 
+      {isPro && (
+        <div className="mt-6 pt-6 border-t border-white/6">
+          <h3 className="text-sm font-semibold text-gray-400 mb-3">Gerenciar assinatura</h3>
+          <button
+            onClick={() => setShowCancelar(true)}
+            className="text-sm text-red-500/70 hover:text-red-400 transition-colors underline underline-offset-4"
+          >
+            Cancelar minha assinatura
+          </button>
+          <p className="text-xs text-gray-700 mt-1">Seu plano voltará para Free imediatamente.</p>
+        </div>
+      )}
+
       <p className="text-xs text-gray-600 text-center mt-6">Dúvidas? WhatsApp: (16) 99116-9184</p>
 
       {showCheckout && (
         <CheckoutPro onClose={() => setShowCheckout(false)} onSuccess={() => {}} />
+      )}
+
+      {showCancelar && (
+        <CancelarAssinatura
+          onClose={() => setShowCancelar(false)}
+          onCancelado={() => refreshAssinatura()}
+        />
       )}
     </div>
   )

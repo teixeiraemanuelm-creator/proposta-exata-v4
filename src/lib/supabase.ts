@@ -220,3 +220,17 @@ export const ativarPlano = (empresaId: string, mpPaymentId: string) =>
     proximo_vencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
   }, { onConflict: 'empresa_id' })
+
+// Ativação manual de licença Lifetime (Fundadores) — executar via Supabase dashboard ou função admin
+// Uso: ativarLifetime(empresaId, 'pix-manual-xxx') -> muda plano para 'lifetime' sem vencimento
+export const ativarLifetime = (empresaId: string, pagamentoId: string) =>
+  supabase.from('assinaturas').upsert({
+    empresa_id: empresaId,
+    plano: 'lifetime',
+    status: 'ativo',
+    mp_payment_id: pagamentoId,
+    valor_mensal: 0,
+    inicio: new Date().toISOString(),
+    proximo_vencimento: null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'empresa_id' })
