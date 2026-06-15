@@ -68,11 +68,6 @@ function AppShell() {
     setShowApp(true)
   }
 
-  // Rota exclusiva dos Fundadores
-  if (window.location.pathname === '/fundadores') {
-    return <PaginaFundadores />
-  }
-
   // Rota de callback OAuth (Google login)
   if (window.location.pathname === '/auth/callback') {
     localStorage.setItem('pe_show_app', '1')
@@ -104,6 +99,11 @@ function AppShell() {
 
   if (loading || (user && empresaLoading)) {
     return <div className="min-h-screen bg-dark-900 flex items-center justify-center"><Spinner size={36} /></div>
+  }
+
+  // Rota pública dos Fundadores — não requer login
+  if (window.location.pathname === '/fundadores') {
+    return <PaginaFundadores />
   }
 
   if (!user) return <LoginPage />
