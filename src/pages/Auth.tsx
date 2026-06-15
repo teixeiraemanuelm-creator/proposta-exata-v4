@@ -3,8 +3,7 @@ import { Logo } from '@/components/Logo'
 import { Btn, Input } from '@/components/ui'
 import { signInEmail, signInGoogle, signUp, criarEmpresa } from '@/lib/supabase'
 import { useAuth } from '@/contexts'
-import { Building2, ArrowRight , Eye, EyeOff} from 'lucide-react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Building2, ArrowRight, Eye, EyeOff } from 'lucide-react'
 
 export function LoginPage() {
   const [mode, setMode] = useState<'login'|'register'>('login')
