@@ -77,6 +77,17 @@ function CheckoutPix({
         payload: { email, tipo, pixData },
       })
     } catch { /* silencioso */ }
+
+    // Google Ads — conversão de compra
+    if (typeof (window as any).gtag === 'function') {
+      ;(window as any).gtag('event', 'conversion', {
+        send_to: 'AW-18242129357/gT23COzE3L8cEM2bw_pD',
+        value: valor,
+        currency: 'BRL',
+        transaction_id: pixData?.payment_id ?? `manual-${Date.now()}`,
+      })
+    }
+
     setStep('sucesso')
     setConfirmando(false)
     setTimeout(() => onSuccess(), 2500)

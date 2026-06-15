@@ -207,6 +207,17 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
     setConfirmando(true)
     await ativarPlano(empresa.id, pixData.order_id)
     await refreshAssinatura()
+
+    // Google Ads — conversão de compra
+    if (typeof (window as any).gtag === 'function') {
+      ;(window as any).gtag('event', 'conversion', {
+        send_to: 'AW-18242129357/gT23COzE3L8cEM2bw_pD',
+        value: 47,
+        currency: 'BRL',
+        transaction_id: pixData.order_id,
+      })
+    }
+
     setStep('sucesso')
     setConfirmando(false)
     setTimeout(() => { onSuccess(); onClose() }, 2500)
