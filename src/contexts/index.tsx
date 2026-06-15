@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase, getEmpresa, getAssinatura } from '@/lib/supabase'
+import { supabase, getEmpresa, getAssinatura, verificarEAtivarPendente } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export type UserRole = 'owner' | 'admin' | 'vendedor' | 'visualizador'
@@ -34,13 +34,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [empresaLoading, setEmpresaLoading] = useState(false)
 
-  async function loadEmpresa(uid: string) {
+  async function loadEmpresa(uid: string, userEmail?: string) {
     setEmpresaLoading(true)
     const result = await getEmpresa(uid)
     const emp = result?.empresa ?? null
     setEmpresa(emp)
     setRole(result?.role ?? null)
     if (emp?.id) {
+      // Verifica se há pagamento pendente (Fundadores / Pix) e ativa automaticamente
+      if (userEmail) {
+        const planoAtivado = await verificarEAtivarPendente(emp.id, userEmail)
+        if (planoAtivado) {
+          const { data: ass } = await getAssinatura(emp.id)
+          setAssinatura(ass ?? { plano: 'free', status: 'ativo' })
+          setEmpresaLoading(false)
+          return
+        }
+      }
       const { data: ass } = await getAssinatura(emp.id)
       setAssinatura(ass ?? { plano: 'free', status: 'ativo' })
     }
@@ -63,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const u = data.session?.user ?? null
       setUser(u)
       setLoading(false)
-      if (u) loadEmpresa(u.id)
+      if (u) loadEmpresa(u.id, u.email)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -71,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(u)
       setLoading(false)
       if (u) {
-        loadEmpresa(u.id)
+        loadEmpresa(u.id, u.email)
         // Envia email de boas-vindas no primeiro login via Google OAuth
         if (event === 'SIGNED_IN' && u.app_metadata?.provider === 'google') {
           const jaEnviou = localStorage.getItem(`pe_welcome_${u.id}`)

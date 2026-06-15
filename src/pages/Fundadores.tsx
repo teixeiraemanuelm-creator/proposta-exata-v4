@@ -69,6 +69,8 @@ function CheckoutPix({
     try {
       await supabase.from('pagamentos_assinatura').insert({
         mp_payment_id: pixData?.payment_id ?? `manual-${Date.now()}`,
+        email,
+        tipo,
         valor,
         status: 'pending_confirmation',
         metodo: 'pix',

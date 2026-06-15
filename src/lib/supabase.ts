@@ -221,9 +221,48 @@ export const ativarPlano = (empresaId: string, mpPaymentId: string) =>
     updated_at: new Date().toISOString(),
   }, { onConflict: 'empresa_id' })
 
-// Ativação manual de licença Lifetime (Fundadores) — executar via Supabase dashboard ou função admin
-// Uso: ativarLifetime(empresaId, 'pix-manual-xxx') -> muda plano para 'lifetime' sem vencimento
-export const ativarLifetime = (empresaId: string, pagamentoId: string) =>
+// Ativação automática de licença pendente — chamado no login
+// Busca pagamentos com status 'pending_confirmation' para o email do usuário
+// e ativa o plano correspondente (pro ou lifetime)
+export async function verificarEAtivarPendente(empresaId: string, email: string) {
+  const { data: pendentes } = await supabase
+    .from('pagamentos_assinatura')
+    .select('*')
+    .eq('email', email)
+    .eq('status', 'pending_confirmation')
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  if (!pendentes || pendentes.length === 0) return null
+
+  const pag = pendentes[0]
+  const tipo = pag.tipo ?? pag.payload?.tipo ?? 'pro'
+  const plano = tipo === 'lifetime' ? 'lifetime' : 'pro'
+  const proximoVencimento = plano === 'lifetime'
+    ? null
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  // Ativa o plano
+  await supabase.from('assinaturas').upsert({
+    empresa_id: empresaId,
+    plano,
+    status: 'ativo',
+    mp_payment_id: pag.mp_payment_id,
+    valor_mensal: plano === 'lifetime' ? 0 : 47,
+    inicio: new Date().toISOString(),
+    proximo_vencimento: proximoVencimento,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'empresa_id' })
+
+  // Marca o pagamento como confirmado
+  await supabase
+    .from('pagamentos_assinatura')
+    .update({ status: 'confirmed', empresa_id: empresaId, updated_at: new Date().toISOString() })
+    .eq('id', pag.id)
+
+  return plano
+}
+
   supabase.from('assinaturas').upsert({
     empresa_id: empresaId,
     plano: 'lifetime',
