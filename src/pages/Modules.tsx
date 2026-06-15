@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { Plus, Search, Trash2, Edit2, BarChart3, RefreshCw, Upload } from 'lucide-react'
+import { Plus, Search, Trash2, Edit2, BarChart3, RefreshCw, Upload, Crown, Lock } from 'lucide-react'
 import { useAuth } from '@/contexts'
 import {
   getClientes, salvarCliente, deletarCliente,
@@ -15,6 +15,31 @@ import {
 } from '@/lib/supabase'
 import { R$, fmtData, hoje, buscaCEP, maskCPFCNPJ, maskTelefone, maskCEP, maskCNPJ } from '@/lib/utils'
 import { Btn, Input, Textarea, Select, Modal, Spinner, PageHeader, EmptyState } from '@/components/ui'
+
+// ─── Gate Pro ─────────────────────────────────────────────────────────────────
+function ProGate({ modulo, onUpgrade }: { modulo: string; onUpgrade?: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-orange-500/15 flex items-center justify-center mb-5">
+        <Lock size={28} className="text-orange-400" />
+      </div>
+      <h2 className="text-xl font-black text-white mb-2">{modulo} é Pro</h2>
+      <p className="text-sm text-gray-400 max-w-xs mb-6">
+        Faça upgrade para o Plano Pro e desbloqueie {modulo.toLowerCase()}, relatórios avançados, equipe e muito mais.
+      </p>
+      <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-6 py-4 mb-6">
+        <p className="text-2xl font-black text-white">R$ 47<span className="text-sm font-normal text-gray-400">/mês</span></p>
+        <p className="text-xs text-gray-500 mt-1">ou R$ 1.500 vitalício — sem mensalidade</p>
+      </div>
+      <a
+        href="/fundadores"
+        className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+      >
+        <Crown size={16} /> Ver planos
+      </a>
+    </div>
+  )
+}
 
 // ─── CLIENTES ─────────────────────────────────────────────────────────────────
 export function Clientes() {
@@ -452,6 +477,9 @@ export function ReciboForm({ onBack, empresaId }: { onBack: () => void; empresaI
 
 // ─── ESTOQUE ──────────────────────────────────────────────────────────────────
 export function Estoque() {
+  const { isPro } = useAuth()
+  if (!isPro) return <ProGate modulo="Estoque" />
+
   const [tab, setTab] = useState<'atual' | 'movimentacoes'>('atual')
   const [estoque, setEstoque] = useState<any[]>([])
   const [movs, setMovs] = useState<any[]>([])
@@ -571,7 +599,8 @@ const ROLE_COLOR: Record<string, string> = {
 }
 
 export function Equipe() {
-  const { empresa, user, podeGerenciar } = useAuth()
+  const { empresa, user, podeGerenciar, isPro } = useAuth()
+  if (!isPro) return <ProGate modulo="Equipe" />
   const [membros, setMembros] = useState<any[]>([])
   const [convites, setConvites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -743,7 +772,8 @@ export function Equipe() {
 
 // ─── RELATÓRIOS ───────────────────────────────────────────────────────────────
 export function Relatorios() {
-  const { empresa } = useAuth()
+  const { empresa, isPro } = useAuth()
+  if (!isPro) return <ProGate modulo="Relatórios" />
   const [orcamentos, setOrcamentos] = useState<any[]>([])
   const [recibos, setRecibos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
