@@ -3,7 +3,8 @@ import { Logo } from '@/components/Logo'
 import { Btn, Input } from '@/components/ui'
 import { signInEmail, signInGoogle, signUp, criarEmpresa } from '@/lib/supabase'
 import { useAuth } from '@/contexts'
-import { Building2, ArrowRight } from 'lucide-react'
+import { Building2, ArrowRight , Eye, EyeOff} from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 
 export function LoginPage() {
   const [mode, setMode] = useState<'login'|'register'>('login')
@@ -12,6 +13,7 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [gLoading, setGLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -81,6 +83,7 @@ export function OnboardingPage() {
   const { user, refreshEmpresa } = useAuth()
   const [form, setForm] = useState({ nome: '', cnpj: '', telefone: '', email: user?.email ?? '', cidade: '', estado: '' })
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   function f(p: any) { setForm(prev => ({ ...prev, ...p })) }
 
