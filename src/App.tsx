@@ -67,6 +67,15 @@ function AppShell() {
     setShowApp(true)
   }
 
+  // Rota de callback OAuth (Google login)
+  if (window.location.pathname === '/auth/callback') {
+    localStorage.setItem('pe_show_app', '1')
+    // Supabase processa o token automaticamente via onAuthStateChange
+    // Redireciona para o app
+    window.history.replaceState({}, '', '/app')
+    if (!showApp) setShowApp(true)
+  }
+
   // Rota pública de orçamento — sempre disponível
   if (window.location.pathname.startsWith('/orcamento-publico/')) {
     const id = window.location.pathname.split('/').pop() ?? ''
