@@ -227,6 +227,10 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
       </div>
     </div>
   )
+
+  const clienteOptions = [{ value: '', label: 'Selecione um cliente...' }, ...clientes.map(c => ({ value: c.id, label: c.nome }))]
+  const statusOptions = [
+    { value: 'rascunho', label: 'Rascunho' },
     { value: 'enviado', label: 'Enviado' },
     { value: 'em_analise', label: 'Em análise' },
     { value: 'aprovado', label: 'Aprovado' },
