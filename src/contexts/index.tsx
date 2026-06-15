@@ -64,12 +64,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (u) loadEmpresa(u.id)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null
       setUser(u)
       setLoading(false)
-      if (u) loadEmpresa(u.id)
-      else { setEmpresa(null); setRole(null) }
+      if (u) {
+        loadEmpresa(u.id)
+        // Envia email de boas-vindas no primeiro login via Google OAuth
+        if (event === 'SIGNED_IN' && u.app_metadata?.provider === 'google') {
+          const jaEnviou = localStorage.getItem(`pe_welcome_${u.id}`)
+          if (!jaEnviou) {
+            localStorage.setItem(`pe_welcome_${u.id}`, '1')
+            fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enviar-boas-vindas`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: u.email,
+                  nome: u.user_metadata?.full_name ?? u.email,
+                  empresa: u.user_metadata?.full_name ?? '',
+                }),
+              }
+            ).catch(() => {/* silencioso */})
+          }
+        }
+      } else {
+        setEmpresa(null)
+        setRole(null)
+      }
     })
 
     return () => subscription.unsubscribe()
