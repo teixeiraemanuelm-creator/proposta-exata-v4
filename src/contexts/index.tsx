@@ -20,6 +20,8 @@ interface AuthCtx {
   podeGerenciar: boolean
   isOwner: boolean
   isPro: boolean
+  isLifetime: boolean
+  isFundador: boolean
 }
 
 const AuthContext = createContext<AuthCtx | null>(null)
@@ -101,14 +103,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const podeEditar = role !== null && role !== 'visualizador'
   const podeGerenciar = role === 'owner' || role === 'admin'
   const isOwner = role === 'owner'
-  const plano: 'free' | 'pro' = assinatura?.plano === 'pro' && assinatura?.status === 'ativo' ? 'pro' : 'free'
-  const isPro = plano === 'pro'
+  const isLifetime = assinatura?.plano === 'lifetime' && assinatura?.status === 'ativo'
+  const plano: 'free' | 'pro' = (assinatura?.plano === 'pro' || isLifetime) && assinatura?.status === 'ativo' ? 'pro' : 'free'
+  const isPro = plano === 'pro' || isLifetime
+  const isFundador = empresa?.fundador === true || isLifetime
 
   return (
     <AuthContext.Provider value={{
       user, empresa, role, assinatura, plano, loading, empresaLoading,
       refreshEmpresa, refreshAssinatura, setEmpresa,
-      podeEditar, podeGerenciar, isOwner, isPro,
+      podeEditar, podeGerenciar, isOwner, isPro, isLifetime, isFundador,
     }}>
       {children}
     </AuthContext.Provider>
