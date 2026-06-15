@@ -263,6 +263,7 @@ export async function verificarEAtivarPendente(empresaId: string, email: string)
   return plano
 }
 
+export const ativarLifetime = (empresaId: string, pagamentoId: string) =>
   supabase.from('assinaturas').upsert({
     empresa_id: empresaId,
     plano: 'lifetime',
