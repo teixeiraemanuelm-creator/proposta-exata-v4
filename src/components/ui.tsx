@@ -1,5 +1,5 @@
-import React from 'react'
-import { X, Loader2 } from 'lucide-react'
+import React, { useCallback, useRef, useState, useEffect } from 'react'
+import { X, Loader2, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
 
 export function Btn({ children, variant = 'primary', size = 'md', loading, icon, full, className = '', ...rest }: {
   children?: React.ReactNode; variant?: 'primary'|'secondary'|'ghost'|'danger'|'success'|'whatsapp'
@@ -127,3 +127,102 @@ export function EmptyState({ icon, title, desc, action }: { icon: React.ReactNod
     </div>
   )
 }
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+type ToastType = 'success' | 'error' | 'info'
+interface ToastItem { id: number; msg: string; type: ToastType }
+
+let _addToast: ((msg: string, type: ToastType) => void) | null = null
+
+export function toast(msg: string, type: ToastType = 'info') {
+  _addToast?.(msg, type)
+}
+
+export function ToastProvider() {
+  const [toasts, setToasts] = useState<ToastItem[]>([])
+  const counter = useRef(0)
+
+  const add = useCallback((msg: string, type: ToastType) => {
+    const id = ++counter.current
+    setToasts(p => [...p, { id, msg, type }])
+    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3500)
+  }, [])
+
+  useEffect(() => { _addToast = add; return () => { _addToast = null } }, [add])
+
+  const icons = {
+    success: <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />,
+    error: <AlertTriangle size={16} className="text-red-400 flex-shrink-0" />,
+    info: <Info size={16} className="text-blue-400 flex-shrink-0" />,
+  }
+
+  if (!toasts.length) return null
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 items-center pointer-events-none">
+      {toasts.map(t => (
+        <div key={t.id} className="flex items-center gap-2.5 bg-dark-800 border border-white/10 text-white text-sm px-4 py-3 rounded-xl shadow-xl animate-in fade-in slide-in-from-bottom-2 max-w-sm pointer-events-auto">
+          {icons[t.type]}
+          <span>{t.msg}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── ConfirmDialog ────────────────────────────────────────────────────────────
+interface ConfirmOptions { title?: string; message: string; confirmLabel?: string; danger?: boolean }
+
+let _openConfirm: ((opts: ConfirmOptions) => Promise<boolean>) | null = null
+
+export function confirm(message: string, opts?: Partial<ConfirmOptions>): Promise<boolean> {
+  if (_openConfirm) return _openConfirm({ message, ...opts })
+  return Promise.resolve(window.confirm(message))
+}
+
+export function ConfirmProvider() {
+  const [state, setState] = useState<{ open: boolean; opts: ConfirmOptions; resolve: (v: boolean) => void } | null>(null)
+
+  useEffect(() => {
+    _openConfirm = (opts) => new Promise<boolean>(resolve => {
+      setState({ open: true, opts, resolve })
+    })
+    return () => { _openConfirm = null }
+  }, [])
+
+  if (!state?.open) return null
+
+  function handle(v: boolean) {
+    state!.resolve(v)
+    setState(null)
+  }
+
+  const { opts } = state
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => handle(false)} />
+      <div className="relative w-full max-w-sm bg-[#13121f] border border-white/10 rounded-2xl p-6 flex flex-col gap-4 shadow-2xl">
+        <div className="flex items-start gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${opts.danger ? 'bg-red-500/15' : 'bg-orange-500/15'}`}>
+            <AlertTriangle size={20} className={opts.danger ? 'text-red-400' : 'text-orange-400'} />
+          </div>
+          <div>
+            {opts.title && <p className="font-black text-white mb-1">{opts.title}</p>}
+            <p className="text-sm text-gray-400">{opts.message}</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => handle(false)} className="flex-1 py-2.5 rounded-xl border border-white/10 text-gray-300 text-sm font-semibold hover:bg-white/5 transition-colors">
+            Cancelar
+          </button>
+          <button
+            onClick={() => handle(true)}
+            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-colors ${opts.danger ? 'bg-red-600 hover:bg-red-500' : 'bg-orange-500 hover:bg-orange-400'}`}
+          >
+            {opts.confirmLabel ?? 'Confirmar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+

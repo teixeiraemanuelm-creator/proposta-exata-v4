@@ -4,7 +4,7 @@ import { Plus, Search, ArrowLeft, Trash2, Edit2, FileDown, MessageCircle, Mail, 
 import { useAuth } from '@/contexts'
 import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase } from '@/lib/supabase'
 import { R$, fmtData, hoje, calcItem, calcTotais, enviarWhatsApp, gerarPDF } from '@/lib/utils'
-import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal } from '@/components/ui'
+import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal, toast, confirm } from '@/components/ui'
 import type { Screen } from '@/types'
 
 // ─── Lista (v2) ───────────────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ export function OrcamentosLista({ onNavigate }: { onNavigate: (s: Screen, id?: s
 
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.stopPropagation()
-    if (!confirm('Excluir orçamento?')) return
+    if (!await confirm('Excluir este orçamento?', { danger: true, confirmLabel: 'Excluir' })) return
     await deletarOrcamento(id)
     setLista(p => p.filter(o => o.id !== id))
   }
@@ -171,7 +171,7 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
 
   async function handleSave() {
     if (!empresa) return
-    if (!clienteId) { alert('Selecione um cliente antes de salvar.'); return }
+    if (!clienteId) { toast('Selecione um cliente antes de salvar.', 'error'); return }
     setSaving(true)
     try {
       const clienteNome = clientes.find(c => c.id === clienteId)?.nome ?? ''
@@ -200,13 +200,13 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
       if (editId) orcDados.id = editId
 
       const { data, error } = await salvarOrcamento(orcDados)
-      if (error) { alert('Erro ao salvar: ' + error.message); return }
+      if (error) { toast('Erro ao salvar: ' + error.message, 'error'); return }
       if (data?.id) {
         await salvarItens(data.id, itens.map(({ _id, id, orcamento_id, created_at, updated_at, ordem, ...rest }) => rest))
         onNavigate('orcamento-detalhe', data.id)
       }
     } catch (err: any) {
-      alert('Erro inesperado. Tente novamente.')
+      toast('Erro inesperado. Tente novamente.', 'error')
     } finally {
       setSaving(false)
     }
@@ -360,7 +360,7 @@ export function OrcamentoDetalhe({ id, onNavigate }: { id: string; onNavigate: (
   }
 
   async function handleDelete() {
-    if (!confirm('Excluir este orçamento?')) return
+    if (!await confirm('Excluir este orçamento?', { danger: true, confirmLabel: 'Excluir' })) return
     await deletarOrcamento(id)
     onNavigate('orcamentos')
   }

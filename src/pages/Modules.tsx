@@ -14,7 +14,7 @@ import {
   getProximoCodigo,
 } from '@/lib/supabase'
 import { R$, fmtData, hoje, buscaCEP, maskCPFCNPJ, maskTelefone, maskCEP, maskCNPJ } from '@/lib/utils'
-import { Btn, Input, Textarea, Select, Modal, Spinner, PageHeader, EmptyState } from '@/components/ui'
+import { Btn, Input, Textarea, Select, Modal, Spinner, PageHeader, EmptyState, toast, confirm } from '@/components/ui'
 
 // ─── Gate Pro ─────────────────────────────────────────────────────────────────
 function ProGate({ modulo, onUpgrade }: { modulo: string; onUpgrade?: () => void }) {
@@ -96,7 +96,7 @@ export function Clientes() {
 
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.stopPropagation()
-    if (!confirm('Excluir cliente?')) return
+    if (!await confirm('Excluir cliente?', { danger: true, confirmLabel: 'Excluir' })) return
     await deletarCliente(id)
     setLista(p => p.filter(c => c.id !== id))
   }
@@ -237,14 +237,14 @@ export function Produtos() {
   }
 
   async function handleSave() {
-    if (!form.nome?.trim()) return alert('Preencha o nome do produto')
-    if (!empresa?.id) return alert('Empresa não carregada')
+    if (!form.nome?.trim()) { toast('Preencha o nome do produto', 'error'); return }
+    if (!empresa?.id) { toast('Empresa não carregada', 'error'); return }
     // Check duplicate code
     const codigoDuplicado = lista.some(p => p.codigo === form.codigo && p.id !== form.id)
-    if (codigoDuplicado) return alert(`O código "${form.codigo}" já existe. Use outro código.`)
+    if (codigoDuplicado) { toast(`O código "${form.codigo}" já existe. Use outro código.`, 'error'); return }
     setSaving(true)
     const { data, error } = await salvarProduto({ ...form, empresa_id: empresa.id })
-    if (error) { alert(error.message.includes('duplicate') ? `O código "${form.codigo}" já existe. Altere o código e tente novamente.` : 'Erro ao salvar: ' + error.message); setSaving(false); return }
+    if (error) { toast(error.message.includes('duplicate') ? `O código "${form.codigo}" já existe. Altere o código e tente novamente.` : 'Erro ao salvar: ' + error.message, 'error'); setSaving(false); return }
     if (data) {
       setLista(p => p.some(x => x.id === data.id) ? p.map(x => x.id === data.id ? data : x) : [data, ...p])
       setModal({ open: false })
@@ -254,7 +254,7 @@ export function Produtos() {
 
   async function handleDelete(id: string, e: React.MouseEvent) {
     e.stopPropagation()
-    if (!confirm('Excluir produto?')) return
+    if (!await confirm('Excluir produto?', { danger: true, confirmLabel: 'Excluir' })) return
     await deletarProduto(id)
     setLista(p => p.filter(x => x.id !== id))
   }
@@ -353,7 +353,7 @@ export function Recibos({ onNovoRecibo }: { onNovoRecibo: () => void }) {
   }, [empresa])
 
   async function handleDelete(id: string) {
-    if (!confirm('Excluir recibo?')) return
+    if (!await confirm('Excluir recibo?', { danger: true, confirmLabel: 'Excluir' })) return
     await deletarRecibo(id)
     setLista(p => p.filter(r => r.id !== id))
   }
@@ -637,7 +637,7 @@ export function Equipe() {
   }
 
   async function handleRemover(membroId: string) {
-    if (!confirm('Remover este membro da equipe?')) return
+    if (!await confirm('Remover este membro da equipe?', { danger: true, confirmLabel: 'Remover' })) return
     await removerMembro(membroId)
     setMembros(p => p.filter(m => m.id !== membroId))
   }
@@ -896,7 +896,7 @@ export function Pagamentos() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Excluir forma de pagamento?')) return
+    if (!await confirm('Excluir forma de pagamento?', { danger: true, confirmLabel: 'Excluir' })) return
     await deletarFormaPagamento(id)
     setLista(p => p.filter(x => x.id !== id))
   }
