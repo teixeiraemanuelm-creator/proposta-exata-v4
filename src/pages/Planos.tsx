@@ -375,6 +375,25 @@ function CancelarAssinatura({ onClose, onCancelado }: { onClose: () => void; onC
 
       if (error) throw error
       await refreshAssinatura()
+
+      // Email de confirmação de cancelamento
+      const { data: { session } } = await supabase.auth.getSession()
+      fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enviar-cancelamento`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            email: session?.user?.email,
+            nome: session?.user?.user_metadata?.full_name ?? session?.user?.email,
+            empresa: empresa.nome,
+          }),
+        }
+      ).catch(() => {/* silencioso */})
+
       setStep('done')
       setTimeout(() => { onCancelado(); onClose() }, 2500)
     } catch {
