@@ -59,6 +59,15 @@ function AppShell() {
       localStorage.setItem('pe_show_app', '1')
       return true
     }
+    // Na raiz /, só mostra app se há flag E há sessão potencial (cookie do Supabase)
+    if (path === '/') {
+      const temSessao = document.cookie.includes('sb-') || 
+        Object.keys(localStorage).some(k => k.startsWith('sb-'))
+      if (!temSessao) {
+        localStorage.removeItem('pe_show_app')
+        return false
+      }
+    }
     return path !== '/' || Boolean(localStorage.getItem('pe_show_app'))
   })
 
