@@ -6,7 +6,9 @@ import { R$ } from '@/lib/utils'
 import { Btn, Spinner } from '@/components/ui'
 
 const MP_PUBLIC_KEY = 'APP_USR-86adaed4-9e88-4a67-84df-1cd97a08482d'
-const VALOR_PRO = 47
+const VALOR_MENSAL = 39.90
+const VALOR_ANUAL = 29.90
+const VALOR_PRO = 39.90
 
 // ─── Gate — bloqueia criação de orçamento no plano free ───────────────────────
 export function OrcamentoGate({ onContinue, onUpgrade }: { onContinue: () => void; onUpgrade: () => void }) {
@@ -26,7 +28,7 @@ export function OrcamentoGate({ onContinue, onUpgrade }: { onContinue: () => voi
           <p className="text-sm text-gray-500 mt-1">Assine o Pro para criar orçamentos ilimitados.</p>
         </div>
         <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4">
-          <p className="text-2xl font-black text-white">R$ 47<span className="text-sm font-normal text-gray-400">/mês</span></p>
+          <p className="text-2xl font-black text-white">R$ 39,90<span className="text-sm font-normal text-gray-400">/mês</span></p>
           <ul className="mt-3 flex flex-col gap-1.5 text-sm text-left">
             {['Orçamentos ilimitados', 'Até 5 usuários', 'PDF com logo', 'Relatórios avançados', 'Suporte prioritário'].map(f => (
               <li key={f} className="flex items-center gap-2 text-gray-300">
@@ -36,7 +38,7 @@ export function OrcamentoGate({ onContinue, onUpgrade }: { onContinue: () => voi
           </ul>
         </div>
         <div className="flex flex-col gap-2">
-          <Btn full onClick={onUpgrade} icon={<Zap size={15} />}>Assinar Pro — R$ 47/mês</Btn>
+          <Btn full onClick={onUpgrade} icon={<Zap size={15} />}>Assinar Pro — R$ 39,90/mês</Btn>
           <button onClick={onContinue} className="text-sm text-gray-600 hover:text-gray-400 transition-colors">Voltar</button>
         </div>
       </div>
@@ -50,12 +52,14 @@ type Metodo = 'escolha' | 'pix' | 'cartao'
 export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const { empresa, refreshAssinatura } = useAuth()
   const [metodo, setMetodo] = useState<Metodo>('escolha')
+  const [tipoPlano, setTipoPlano] = useState<'mensal' | 'anual'>('mensal')
   const [step, setStep] = useState<'form' | 'processando' | 'sucesso' | 'erro'>('form')
   const [pixData, setPixData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const bricksRef = useRef<any>(null)
+  const valorAtual = tipoPlano === 'anual' ? 29.90 * 12 : 39.90
   const bricksMounted = useRef(false)
 
   // Carrega SDK do MP quando metodo = cartao
@@ -180,8 +184,8 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
             'Authorization': `Bearer ${session?.access_token ?? ''}`,
           },
           body: JSON.stringify({
-            valor: VALOR_PRO,
-            descricao: 'Proposta Exata Pro — Assinatura Mensal',
+            valor: valorAtual,
+            descricao: `Proposta Exata Pro — Assinatura ${tipoPlano === 'anual' ? 'Anual R$ 358,80' : 'Mensal R$ 39,90'}`,
             email: session?.user?.email ?? 'cliente@propostaexata.com.br',
             nome: empresa.nome ?? 'Cliente',
             cpf: empresa.cnpj?.replace(/\D/g, '') ?? '00000000000',
@@ -212,7 +216,7 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
     if (typeof (window as any).gtag === 'function') {
       ;(window as any).gtag('event', 'conversion', {
         send_to: 'AW-18242129357/gT23COzE3L8cEM2bw_pD',
-        value: 47,
+        value: valorAtual,
         currency: 'BRL',
         transaction_id: pixData.order_id,
       })
@@ -236,9 +240,25 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
 
         {/* Preço */}
         <div className="bg-white/3 border border-white/8 rounded-xl p-4 text-center">
-          <p className="text-xs text-gray-500 mb-1">Plano Pro · Mensal</p>
-          <p className="text-4xl font-black text-white">R$ 47</p>
-          <p className="text-xs text-gray-500 mt-1">ou 3x de R$ 15,67 no cartão</p>
+          {/* Seletor mensal/anual */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setTipoPlano?.('mensal')}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${tipoPlano === 'mensal' ? 'bg-orange-500 text-white border-orange-500' : 'border-white/10 text-gray-400 hover:border-white/20'}`}
+            >
+              Mensal<br /><span className="text-xs font-normal">R$ 39,90/mês</span>
+            </button>
+            <button
+              onClick={() => setTipoPlano?.('anual')}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all relative ${tipoPlano === 'anual' ? 'bg-orange-500 text-white border-orange-500' : 'border-white/10 text-gray-400 hover:border-white/20'}`}
+            >
+              <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full">-25%</span>
+              Anual<br /><span className="text-xs font-normal">R$ 29,90/mês</span>
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mb-1">Plano Pro · {tipoPlano === 'anual' ? 'Anual' : 'Mensal'}</p>
+          <p className="text-4xl font-black text-white">{tipoPlano === 'anual' ? 'R$ 29,90' : 'R$ 39,90'}</p>
+          <p className="text-xs text-gray-500 mt-1">ou anual por R$ 29,90/mês</p>
         </div>
 
         {/* Sucesso */}
@@ -284,7 +304,7 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
                 </div>
                 <div>
                   <p className="font-semibold text-white text-sm">Pix</p>
-                  <p className="text-xs text-gray-500">Aprovação instantânea · R$ 47,00</p>
+                  <p className="text-xs text-gray-500">Aprovação instantânea · R$ 39,90</p>
                 </div>
                 <ArrowRight size={16} className="text-gray-600 ml-auto" />
               </button>
@@ -298,7 +318,7 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
                 </div>
                 <div>
                   <p className="font-semibold text-white text-sm">Cartão de crédito ou débito</p>
-                  <p className="text-xs text-gray-500">Até 3x sem juros · R$ 15,67/parcela</p>
+                  <p className="text-xs text-gray-500">Até 3x sem juros · R$ 13,30/parcela</p>
                 </div>
                 <ArrowRight size={16} className="text-gray-600 ml-auto" />
               </button>
@@ -509,12 +529,12 @@ export function Planos() {
       </div>
 
       {!isPro && (
-        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        <div className="flex flex-col gap-3 mb-6">
           {/* Free */}
-          <div className="card p-6 border border-white/8 opacity-60">
+          <div className="card p-5 border border-white/8 opacity-60">
             <p className="text-sm font-semibold text-gray-400 mb-1">Free</p>
-            <p className="text-3xl font-black text-white mb-4">R$ 0<span className="text-sm font-normal text-gray-500"> /mês</span></p>
-            <ul className="flex flex-col gap-2 mb-5">
+            <p className="text-3xl font-black text-white mb-3">R$ 0<span className="text-sm font-normal text-gray-500"> /mês</span></p>
+            <ul className="flex flex-col gap-1.5 mb-4">
               {['5 orçamentos/mês', '1 usuário', 'PDF básico', 'Link de aprovação'].map(f => (
                 <li key={f} className="flex items-center gap-2 text-sm text-gray-500">
                   <CheckCircle2 size={13} className="text-gray-600 flex-shrink-0" /> {f}
@@ -524,25 +544,55 @@ export function Planos() {
             <div className="w-full py-2.5 rounded-xl border border-white/10 text-sm text-gray-600 text-center font-semibold">Plano atual</div>
           </div>
 
-          {/* Pro */}
-          <div className="card p-6 border border-orange-500/40" style={{ boxShadow: '0 0 30px rgba(249,115,22,0.1)' }}>
+          {/* Pro Mensal */}
+          <div className="card p-5 border border-orange-500/30">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-sm font-semibold text-gray-300">Pro</p>
-              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold">Popular</span>
+              <p className="text-sm font-semibold text-gray-300">Pro Mensal</p>
             </div>
-            <p className="text-3xl font-black text-white mb-1">R$ 47<span className="text-sm font-normal text-gray-500"> /mês</span></p>
-            <p className="text-xs text-gray-500 mb-4">ou 3x de R$ 15,67 no cartão</p>
-            <ul className="flex flex-col gap-2 mb-5">
+            <p className="text-3xl font-black text-white mb-1">R$ 39,90<span className="text-sm font-normal text-gray-500"> /mês</span></p>
+            <p className="text-xs text-gray-500 mb-3">sem fidelidade</p>
+            <ul className="flex flex-col gap-1.5 mb-4">
               {['Orçamentos ilimitados', 'Até 5 usuários', 'PDF com logo', 'Relatórios avançados', 'Pix + Cartão', 'Suporte prioritário'].map(f => (
-                <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
+                <li key={f} className="flex items-center gap-2 text-sm text-orange-300/80">
                   <CheckCircle2 size={13} className="text-orange-500 flex-shrink-0" /> {f}
                 </li>
               ))}
             </ul>
-            <Btn full onClick={() => setShowCheckout(true)} icon={<Crown size={14} />}>Assinar Pro</Btn>
+            <Btn full onClick={() => setShowCheckout(true)} icon={<Crown size={14} />}>Assinar Mensal — R$ 39,90</Btn>
           </div>
+
+          {/* Pro Anual */}
+          <div className="card p-5 border border-emerald-500/40 relative" style={{ boxShadow: '0 0 20px rgba(16,185,129,0.08)' }}>
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">ECONOMIZE 25%</span>
+            <div className="flex items-center justify-between mb-1 mt-2">
+              <p className="text-sm font-semibold text-gray-300">Pro Anual</p>
+              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">Popular</span>
+            </div>
+            <p className="text-3xl font-black text-white mb-1">R$ 29,90<span className="text-sm font-normal text-gray-500"> /mês</span></p>
+            <p className="text-xs text-gray-500 mb-3">cobrado R$ 358,80/ano</p>
+            <ul className="flex flex-col gap-1.5 mb-4">
+              {['Orçamentos ilimitados', 'Até 5 usuários', 'PDF com logo', 'Relatórios avançados', 'Pix + Cartão', 'Suporte prioritário'].map(f => (
+                <li key={f} className="flex items-center gap-2 text-sm text-emerald-300/80">
+                  <CheckCircle2 size={13} className="text-emerald-500 flex-shrink-0" /> {f}
+                </li>
+              ))}
+            </ul>
+            <Btn full onClick={() => setShowCheckout(true)} icon={<Crown size={14} />}>Assinar Anual — R$ 358,80</Btn>
+          </div>
+
+          {/* Premium Vitalício */}
+          <a href="/fundadores" className="card p-5 border border-amber-500/30 block hover:border-amber-500/50 transition-colors">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-semibold text-amber-300">Premium Vitalício</p>
+              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-bold">100 vagas</span>
+            </div>
+            <p className="text-3xl font-black text-white mb-1">R$ 499<span className="text-sm font-normal text-gray-500"> único</span></p>
+            <p className="text-xs text-gray-500 mb-2">sem mensalidade · todas as atualizações inclusas</p>
+            <p className="text-xs text-amber-400 font-semibold">→ Ver oferta de fundador</p>
+          </a>
         </div>
       )}
+
 
       {isPro && (
         <div className="card p-5 border border-emerald-500/20">

@@ -4,8 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { Logo } from '@/components/Logo'
 import { Spinner } from '@/components/ui'
 
-const VALOR_LIFETIME = 1500
-const VALOR_PRO = 47
+const VALOR_LIFETIME = 499
+const VALOR_PRO = 39.90
 
 // ─── Checkout Pix genérico ────────────────────────────────────────────────────
 function CheckoutPix({
@@ -238,10 +238,10 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export function PaginaFundadores() {
   const [checkout, setCheckout] = useState<'lifetime' | 'pro' | null>(null)
   const [sucesso, setSucesso] = useState<'lifetime' | 'pro' | null>(null)
-  const [vagasRestantes] = useState(17)
+  const [vagasRestantes] = useState(87)
 
   const beneficiosLifetime = [
-    'Acesso vitalício ao Pro — sem mensalidade jamais',
+    'Acesso vitalício a todas as funcionalidades — sem mensalidade jamais',
     'Todas as atualizações futuras inclusas',
     'Badge exclusivo "Fundador" no app',
     'Suporte prioritário via WhatsApp',
@@ -260,7 +260,7 @@ export function PaginaFundadores() {
   const faqs = [
     { q: 'Preciso ter CNPJ para assinar?', a: 'Não. O Proposta Exata funciona para autônomos, MEI e empresas. Qualquer prestador de serviço pode usar — elétrica, pintura, reforma, consultoria, design, e muito mais.' },
     { q: 'Como funciona o pagamento via Pix?', a: 'Clique no botão do plano desejado, informe seu email, e um QR Code Pix é gerado na hora. Após o pagamento, clique em "Já paguei". Crie sua conta usando o mesmo email — o plano é ativado automaticamente em até 5 minutos.' },
-    { q: 'O que é a licença Fundador Vitalícia?', a: 'É um pagamento único de R$ 1.500 que garante acesso ao plano Pro para sempre, sem nenhuma mensalidade. São apenas 20 vagas no total — para quem acredita no produto desde o início.' },
+    { q: 'O que é a licença Fundador Vitalícia?', a: 'É um pagamento único de R$ 499 que garante acesso a todas as funcionalidades Premium para sempre, incluindo todas as atualizações futuras, sem nenhuma mensalidade. São apenas 100 vagas no total — para quem acredita no produto desde o início.' },
     { q: 'Posso cancelar o plano Pro mensal?', a: 'Sim, quando quiser, sem burocracia. O cancelamento é feito diretamente dentro do app, na tela de Plano & Assinatura.' },
     { q: 'Meus dados ficam salvos se eu cancelar?', a: 'Sim. Seus orçamentos, clientes e produtos ficam salvos. Você só perde o acesso às funcionalidades Pro, voltando para os limites do plano Free.' },
     { q: 'O cliente precisa baixar algum app para ver o orçamento?', a: 'Não. O cliente recebe um link pelo WhatsApp e abre o orçamento no navegador, sem precisar criar conta nem instalar nada.' },
@@ -275,7 +275,7 @@ export function PaginaFundadores() {
           onClick={() => setCheckout('pro')}
           className="text-xs font-bold text-orange-400 border border-orange-500/30 px-3 py-1.5 rounded-lg hover:bg-orange-500/10 transition-colors"
         >
-          Assinar Pro — R$ 47/mês
+          Assinar Pro — R$ 39,90/mês
         </button>
       </div>
 
@@ -307,13 +307,13 @@ export function PaginaFundadores() {
               className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-black px-7 py-4 rounded-xl transition-all text-sm"
               style={{ boxShadow: '0 0 30px rgba(249,115,22,0.35)' }}
             >
-              <Star size={15} /> Garantir vaga de Fundador — R$ 1.500
+              <Star size={15} /> Garantir acesso Premium — R$ 499
             </button>
             <button
               onClick={() => setCheckout('pro')}
               className="flex items-center justify-center gap-2 border border-white/15 text-white font-bold px-7 py-4 rounded-xl hover:bg-white/5 transition-colors text-sm"
             >
-              Assinar Pro — R$ 47/mês
+              Assinar Pro — R$ 39,90/mês
             </button>
           </div>
           <p className="text-xs text-gray-700 mt-4">Pix. Sem cartão. Ativação automática.</p>
@@ -386,7 +386,7 @@ export function PaginaFundadores() {
         {/* PLANOS */}
         <div className="w-full max-w-3xl mb-6">
           <h2 className="text-2xl font-black text-white text-center mb-2">Escolha seu plano</h2>
-          <p className="text-gray-500 text-center text-sm mb-8">Oferta de lançamento — preços sobem após as 20 vagas Fundador</p>
+          <p className="text-gray-500 text-center text-sm mb-8">Oferta de lançamento — preços sobem após as 20 vagas Premium</p>
           <div className="grid sm:grid-cols-2 gap-5">
             {/* Pro Mensal */}
             <div className="bg-white/3 border border-white/10 rounded-2xl p-6 flex flex-col">
@@ -394,7 +394,7 @@ export function PaginaFundadores() {
                 <Crown size={16} className="text-gray-400" />
                 <p className="font-bold text-gray-300 text-sm">Pro Mensal</p>
               </div>
-              <p className="text-4xl font-black text-white mb-1">R$ 47<span className="text-sm font-normal text-gray-500">/mês</span></p>
+              <p className="text-4xl font-black text-white mb-1">R$ 39,90<span className="text-sm font-normal text-gray-500">/mês</span></p>
               <p className="text-xs text-gray-600 mb-5">cancele quando quiser</p>
               <ul className="flex flex-col gap-2.5 mb-6 flex-1">
                 {beneficiosPro.map(b => (
@@ -422,7 +422,7 @@ export function PaginaFundadores() {
                 <Star size={16} className="text-orange-400" />
                 <p className="font-bold text-white text-sm">Fundador Vitalício</p>
               </div>
-              <p className="text-4xl font-black text-white mb-1">R$ 1.500<span className="text-sm font-normal text-gray-500"> único</span></p>
+              <p className="text-4xl font-black text-white mb-1">R$ 499<span className="text-sm font-normal text-gray-500"> único</span></p>
               <p className="text-xs text-gray-500 mt-1 mb-2">equivale a 32 meses de Pro — para sempre</p>
               <div className="bg-orange-500/8 border border-orange-500/15 rounded-xl px-3 py-2 mb-4">
                 <p className="text-xs text-orange-300/80 text-center">⚡ Oferta encerra em:</p>
@@ -484,13 +484,13 @@ export function PaginaFundadores() {
               className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-black px-7 py-4 rounded-xl transition-all text-sm"
               style={{ boxShadow: '0 0 30px rgba(249,115,22,0.3)' }}
             >
-              <Star size={15} /> Fundador Vitalício — R$ 1.500
+              <Star size={15} /> Fundador Vitalício — R$ 499
             </button>
             <button
               onClick={() => setCheckout('pro')}
               className="flex items-center justify-center gap-2 border border-white/15 text-white font-bold px-7 py-4 rounded-xl hover:bg-white/5 transition-colors text-sm"
             >
-              Pro Mensal — R$ 47/mês
+              Pro Mensal — R$ 39,90/mês
             </button>
           </div>
           <p className="text-xs text-gray-700 mt-4">Pix. Ativação automática. Garantia de 7 dias.</p>
