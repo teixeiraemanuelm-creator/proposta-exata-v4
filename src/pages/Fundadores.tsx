@@ -133,7 +133,7 @@ function CheckoutPix({
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="input w-full"
+                className="field w-full"
               />
               <p className="text-xs text-gray-600">Use o mesmo email para criar sua conta depois</p>
             </div>
