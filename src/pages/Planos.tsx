@@ -297,8 +297,9 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => { setMetodo('pix'); gerarPix() }}
-                className="flex items-center gap-3 p-4 rounded-xl border border-white/10 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all text-left"
+                className="relative flex items-center gap-3 p-4 rounded-xl border-2 border-green-500/40 bg-green-500/5 hover:bg-green-500/10 transition-all text-left"
               >
+                <span className="absolute -top-2.5 left-3 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Funciona com qualquer banco</span>
                 <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center flex-shrink-0">
                   <QrCode size={20} className="text-green-400" />
                 </div>
@@ -317,13 +318,14 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
                   <CreditCard size={20} className="text-blue-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-white text-sm">Cartão de crédito ou débito</p>
+                  <p className="font-semibold text-white text-sm">Cartão de crédito</p>
                   <p className="text-xs text-gray-500">Até 3x sem juros · R$ 13,30/parcela</p>
                 </div>
                 <ArrowRight size={16} className="text-gray-600 ml-auto" />
               </button>
             </div>
-            <p className="text-xs text-gray-600 text-center">Sem contrato. Cancele quando quiser.</p>
+            <p className="text-xs text-gray-600 text-center">Não tem cartão de crédito? Use o Pix — funciona com qualquer conta bancária.</p>
+            <p className="text-xs text-gray-700 text-center">Sem contrato. Cancele quando quiser.</p>
           </>
         )}
 
@@ -364,6 +366,7 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
         {/* Cartão — MP Bricks */}
         {step === 'form' && metodo === 'cartao' && (
           <>
+            <p className="text-xs text-gray-600 -mt-1">Aceita cartão de crédito de qualquer bandeira. Se não tiver cartão de crédito, volte e use o Pix.</p>
             <div id="mp-payment-brick" className="min-h-[300px]" />
             <button onClick={() => { setMetodo('escolha'); bricksMounted.current = false }} className="text-xs text-gray-600 hover:text-gray-400 text-center">← Outro método</button>
           </>
