@@ -109,13 +109,9 @@ export function CheckoutPro({ onClose, onSuccess }: { onClose: () => void; onSuc
           paymentMethods: {
             creditCard: 'all',
             debitCard: 'all',
-            ticket: 'excluded',
-            bankTransfer: 'excluded',
-            mercadoPago: 'excluded',
             maxInstallments: 3,
           },
         },
-        locale: 'pt-BR',
         callbacks: {
           onReady: () => { bricksMounted.current = true },
           onSubmit: async ({ selectedPaymentMethod, formData }: any) => {
