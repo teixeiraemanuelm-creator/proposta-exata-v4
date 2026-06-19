@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Logo } from '@/components/Logo'
 import { Plus, Search, ArrowLeft, Trash2, Edit2, FileDown, MessageCircle, Mail, Link2, Copy, Check, Receipt } from 'lucide-react'
 import { useAuth } from '@/contexts'
-import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase } from '@/lib/supabase'
+import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase, podecriarOrcamento } from '@/lib/supabase'
 import { R$, fmtData, hoje, calcItem, calcTotais, enviarWhatsApp, gerarPDF } from '@/lib/utils'
 import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal, toast, confirm } from '@/components/ui'
 import type { Screen } from '@/types'
@@ -104,10 +104,8 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
 
     // Verifica limite de orçamentos para plano Free (apenas para novos orçamentos)
     if (!editId && !isPro) {
-      import('@/lib/supabase').then(({ podecriarOrcamento }) => {
-        podecriarOrcamento(empresa.id).then(({ data }) => {
-          if (data === false) setLimiteAtingido(true)
-        })
+      podecriarOrcamento(empresa.id).then(({ data }) => {
+        if (data === false) setLimiteAtingido(true)
       })
     }
 
