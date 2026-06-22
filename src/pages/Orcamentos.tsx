@@ -250,6 +250,12 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
         </div>
         <div className="flex flex-col gap-3">
           <Select label="Cliente *" options={clienteOptions} value={clienteId} onChange={(e: any) => setClienteId(e.target.value)} />
+          {clientes.length === 0 && (
+            <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+              <span>⚠️</span>
+              <span>Você ainda não tem clientes cadastrados. Vá em <strong>Clientes</strong> no menu e cadastre um antes de criar o orçamento.</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Input label="Data de Emissão" type="date" value={dataEmissao} onChange={(e: any) => setDataEmissao(e.target.value)} />
             <Input label="Validade (dias)" type="number" value={validade} onChange={(e: any) => setValidade(e.target.value)} />
@@ -338,7 +344,7 @@ export function OrcamentoForm({ editId, onNavigate }: { editId?: string; onNavig
 
       <div className="flex gap-3">
         <Btn variant="secondary" full onClick={() => onNavigate('orcamentos')}>Cancelar</Btn>
-        <Btn full loading={saving} onClick={handleSave}>Salvar Orçamento</Btn>
+        <Btn full loading={saving} disabled={!clienteId} onClick={handleSave}>Salvar Orçamento</Btn>
       </div>
     </div>
   )
