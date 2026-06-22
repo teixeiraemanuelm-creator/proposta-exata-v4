@@ -141,6 +141,18 @@ export const getOrcamentos = (empresaId: string) =>
 export const getOrcamento = (id: string) =>
   supabase.from('orcamentos').select('*, clientes(*), orcamento_itens(*), empresas(nome, logo_url, telefone, email)').eq('id', id).single()
 
+// Versão pública e segura — usada pela página /orcamento-publico/{id}
+// Não exige autenticação, mas só expõe os campos necessários via função SECURITY DEFINER
+export const getOrcamentoPublico = async (id: string) => {
+  const { data, error } = await supabase.rpc('get_orcamento_publico', { p_id: id })
+  return { data, error }
+}
+
+// Aprova ou recusa um orçamento via link público — controlado por função
+// que só permite essa transição de status, nada mais
+export const responderOrcamentoPublico = (id: string, status: 'aprovado' | 'recusado') =>
+  supabase.rpc('responder_orcamento_publico', { p_id: id, p_status: status })
+
 export const salvarOrcamento = (dados: any) =>
   dados.id
     ? supabase.from('orcamentos').update({ ...dados, updated_at: new Date().toISOString() }).eq('id', dados.id).select().single()

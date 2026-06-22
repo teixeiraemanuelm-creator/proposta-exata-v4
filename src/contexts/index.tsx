@@ -91,7 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enviar-boas-vindas`,
               {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session?.access_token ?? ''}`,
+                },
                 body: JSON.stringify({
                   email: u.email,
                   nome: u.user_metadata?.full_name ?? u.email,

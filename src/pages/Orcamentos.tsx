@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Logo } from '@/components/Logo'
 import { Plus, Search, ArrowLeft, Trash2, Edit2, FileDown, MessageCircle, Mail, Link2, Copy, Check, Receipt } from 'lucide-react'
 import { useAuth } from '@/contexts'
-import { getOrcamentos, getOrcamento, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase, podecriarOrcamento } from '@/lib/supabase'
+import { getOrcamentos, getOrcamento, getOrcamentoPublico, responderOrcamentoPublico, salvarOrcamento, salvarItens, deletarOrcamento, getClientes, getProdutos, getVendedores, supabase, podecriarOrcamento } from '@/lib/supabase'
 import { R$, fmtData, hoje, calcItem, calcTotais, enviarWhatsApp, gerarPDF } from '@/lib/utils'
 import { Badge, Btn, Input, Select, Textarea, Spinner, PageHeader, EmptyState, Modal, toast, confirm } from '@/components/ui'
 import type { Screen } from '@/types'
@@ -527,13 +527,22 @@ export function OrcamentoPublico({ id }: { id: string }) {
   const [orc, setOrc] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [done, setDone] = useState('')
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
-    getOrcamento(id).then(({ data }) => { setOrc(data); setLoading(false) })
+    getOrcamentoPublico(id).then(({ data, error }) => {
+      if (error || !data) setErro('Não foi possível carregar este orçamento.')
+      setOrc(data)
+      setLoading(false)
+    })
   }, [id])
 
   async function handleAction(action: 'aprovado' | 'recusado') {
-    await salvarOrcamento({ id, status: action })
+    const { data, error } = await responderOrcamentoPublico(id, action)
+    if (error || !data?.ok) {
+      setErro(data?.erro ?? 'Não foi possível registrar sua resposta. Tente novamente.')
+      return
+    }
     setDone(action)
   }
 
@@ -563,20 +572,20 @@ export function OrcamentoPublico({ id }: { id: string }) {
           <div className="bg-gradient-to-r from-brand-600/20 to-purple-900/30 px-6 py-6 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {orc.empresas?.logo_url
-                  ? <img src={orc.empresas.logo_url} alt="logo" className="h-10 w-auto object-contain" />
-                  : <span className="text-lg font-bold text-white">{orc.empresas?.nome ?? ''}</span>
+                {orc.empresa?.logo_url
+                  ? <img src={orc.empresa.logo_url} alt="logo" className="h-10 w-auto object-contain" />
+                  : <span className="text-lg font-bold text-white">{orc.empresa?.nome ?? ''}</span>
                 }
-                {orc.empresas?.logo_url && <p className="text-base font-bold text-white">{orc.empresas?.nome ?? ''}</p>}
+                {orc.empresa?.logo_url && <p className="text-base font-bold text-white">{orc.empresa?.nome ?? ''}</p>}
               </div>
               <span className="text-xs text-gray-400">Orçamento #{String(orc.numero).padStart(4,'0')}</span>
             </div>
           </div>
           <div className="p-6 flex flex-col gap-5">
-            {(orc.clientes || orc.cliente_nome) && (
+            {orc.cliente_nome && (
               <div>
                 <p className="text-xs text-gray-500 mb-1">Para</p>
-                <p className="font-bold text-white">{orc.clientes?.nome ?? orc.cliente_nome}</p>
+                <p className="font-bold text-white">{orc.cliente_nome}</p>
                 {orc.condicao_pagamento && <p className="text-sm text-brand-500 mt-0.5">{orc.condicao_pagamento}</p>}
               </div>
             )}
