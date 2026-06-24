@@ -183,16 +183,40 @@ const PLANS = [
     features: ['5 orçamentos/mês', '1 usuário', 'PDF básico', 'Link de aprovação', 'Suporte por email'],
     cta: 'Começar grátis',
     ctaStyle: 'bg-white/8 hover:bg-white/12 text-white border border-white/15',
+    link: 'app',
   },
   {
-    name: 'Pro',
-    price: 'R$ 47',
+    name: 'Pro Mensal',
+    price: 'R$ 39,90',
     period: '/mês',
     color: 'border-orange-500/50',
-    badge: 'Mais popular',
+    badge: null,
     features: ['Orçamentos ilimitados', 'Até 5 usuários', 'PDF com logo', 'Relatórios avançados', 'WhatsApp integrado', 'Suporte prioritário'],
-    cta: 'Assinar Pro',
-    ctaStyle: 'bg-orange-500 hover:bg-orange-400 text-white',
+    cta: 'Assinar Mensal',
+    ctaStyle: 'bg-white/8 hover:bg-white/12 text-white border border-orange-500/30',
+    link: 'app',
+  },
+  {
+    name: 'Pro Anual',
+    price: 'R$ 29,90',
+    period: '/mês',
+    color: 'border-emerald-500/50',
+    badge: 'Economize 25%',
+    features: ['Orçamentos ilimitados', 'Até 5 usuários', 'PDF com logo', 'Relatórios avançados', 'WhatsApp integrado', 'Suporte prioritário', 'Cobrado R$ 358,80/ano'],
+    cta: 'Assinar Anual',
+    ctaStyle: 'bg-emerald-500 hover:bg-emerald-400 text-white',
+    link: 'app',
+  },
+  {
+    name: 'Premium Vitalício',
+    price: 'R$ 499',
+    period: 'pagamento único',
+    color: 'border-amber-500/50',
+    badge: '100 vagas',
+    features: ['Tudo do plano Pro', 'Acesso vitalício, sem mensalidade', 'Todas as atualizações futuras incluídas', 'Badge exclusivo de Fundador', 'Suporte prioritário via WhatsApp'],
+    cta: 'Ver oferta de Fundador',
+    ctaStyle: 'bg-amber-500 hover:bg-amber-400 text-white',
+    link: 'fundadores',
   },
 ]
 
@@ -387,24 +411,24 @@ export function LandingPage({ onEnterApp }: { onEnterApp: () => void }) {
 
       {/* PRICING */}
       <section id="precos" className="py-24 px-6 bg-white/2 border-y border-white/6">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs text-orange-400 font-semibold uppercase tracking-widest mb-3">Preços</p>
             <h2 className="text-3xl font-black">Comece grátis. Cresça quando precisar.</h2>
           </div>
-          <div className="grid sm:grid-cols-2 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {PLANS.map(p => (
               <div key={p.name} className={`relative bg-white/3 border rounded-2xl p-7 flex flex-col ${p.color} ${p.badge ? 'glow-orange' : ''}`}>
                 {p.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-xs font-bold px-4 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
                     {p.badge}
                   </div>
                 )}
                 <div className="mb-5">
                   <p className="text-sm font-semibold text-gray-400 mb-1">{p.name}</p>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-black text-white">{p.price}</span>
-                    <span className="text-gray-500 text-sm">{p.period}</span>
+                    <span className="text-3xl font-black text-white">{p.price}</span>
+                    <span className="text-gray-500 text-xs">{p.period}</span>
                   </div>
                 </div>
                 <ul className="flex flex-col gap-2.5 mb-7 flex-1">
@@ -414,9 +438,15 @@ export function LandingPage({ onEnterApp }: { onEnterApp: () => void }) {
                     </li>
                   ))}
                 </ul>
-                <button onClick={onEnterApp} className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${p.ctaStyle}`}>
-                  {p.cta}
-                </button>
+                {p.link === 'fundadores' ? (
+                  <a href="/fundadores" className={`w-full py-3 rounded-xl font-bold text-sm transition-all text-center ${p.ctaStyle}`}>
+                    {p.cta}
+                  </a>
+                ) : (
+                  <button onClick={onEnterApp} className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${p.ctaStyle}`}>
+                    {p.cta}
+                  </button>
+                )}
               </div>
             ))}
           </div>
